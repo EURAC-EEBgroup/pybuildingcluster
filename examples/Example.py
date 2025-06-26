@@ -238,7 +238,7 @@ Example of pybuildingcluster application
 #     n_clusters=optimal_k_silhouette,
 #     algorithm="kmeans",
 #     save_clusters=True,
-#     output_dir="/Users/dantonucci/Documents/gitLab/pybuildingcluster/examples/example_results"
+#     output_dir=".../example_results"
 # )
 
 # results = pbui.ClusteringAnalyzer(random_state=42).fit_predict(
@@ -247,7 +247,7 @@ Example of pybuildingcluster application
 #             method="silhouette",
 #             algorithm="kmeans",
 #             save_clusters=True,
-#             output_dir="/Users/dantonucci/Documents/gitLab/pybuildingcluster/examples/example_results"
+#             output_dir=".../example_results"
 #         )
 
 # #  Evaluate metrics
@@ -298,7 +298,7 @@ Example of pybuildingcluster application
 
 # import ast
 # from io import StringIO
-# csv_data = "/Users/dantonucci/Documents/gitLab/pybuildingcluster/examples/example_results/list_dict_scenarios.csv"
+# csv_data = ".../example_results/list_dict_scenarios.csv"
 # df = pd.read_csv(csv_data)
 
 # def convert_csv_to_scenarios_safe(df):
@@ -337,5 +337,4 @@ Example of pybuildingcluster application
 #     scenarios, 
 #     'QHnd', 
 #     feature_columns_regression_,
-#     output_path = "/Users/dantonucci/Documents/gitLab/pybuildingcluster/examples/example_results/scenario_analysis_report.html")
-
+#     output_path = ".../example_results/scenario_analysis_report.html")

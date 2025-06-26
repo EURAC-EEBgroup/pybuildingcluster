@@ -118,7 +118,7 @@ list_dict_scenarios = [
 ]
 # Save in a file
 list_dict_scenarios = pd.DataFrame(list_dict_scenarios)
-list_dict_scenarios.to_csv("/Users/dantonucci/Documents/gitLab/pybuildingcluster/examples/example_results/list_dict_scenarios.csv", index=False)
+# list_dict_scenarios.to_csv(".../example_results/list_dict_scenarios.csv", index=False)
 
 # Print generated scenarios with details
 print("\n" + "="*80)
