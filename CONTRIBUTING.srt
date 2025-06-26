@@ -1,0 +1,377 @@
+.. highlight:: shell
+
+============
+Contributing
+============
+
+Contributions are welcome, and they are greatly appreciated! Every little bit
+helps, and credit will always be given.
+
+pyBuildingCluster is an open-source project focused on building energy clustering 
+and sensitivity analysis. We encourage contributions from researchers, 
+developers, and practitioners in the building energy field.
+
+You can contribute in many ways:
+
+Types of Contributions
+----------------------
+
+Report Bugs
+~~~~~~~~~~~
+
+Report bugs at https://github.com/yourusername/pybuildingcluster/issues.
+
+If you are reporting a bug, please include:
+
+* Your operating system name and version.
+* Python version and virtual environment details.
+* pyBuildingCluster version and installation method.
+* Dataset characteristics (size, format, columns) if relevant.
+* Any details about your local setup that might be helpful in troubleshooting.
+* Detailed steps to reproduce the bug.
+* Expected vs actual behavior.
+* Error messages and stack traces.
+
+Example bug report template::
+
+    **Environment:**
+    - OS: Ubuntu 20.04
+    - Python: 3.9.7
+    - pyBuildingCluster: 1.0.0
+    - Installation: pip install pybuildingcluster
+    
+    **Dataset:**
+    - Size: 2000 rows, 42 columns
+    - Format: CSV with building energy data
+    
+    **Bug Description:**
+    Clustering fails with error when using silhouette method...
+    
+    **Steps to Reproduce:**
+    1. Load data with pyBuildingClusterAnalyzer
+    2. Run perform_clustering(method="silhouette")
+    3. Error occurs...
+    
+    **Expected Behavior:**
+    Should return optimal cluster number
+    
+    **Actual Behavior:**
+    ValueError: ...
+
+Fix Bugs
+~~~~~~~~
+
+Look through the GitHub issues for bugs. Anything tagged with "bug" and "help
+wanted" is open to whoever wants to implement it.
+
+Areas where bug fixes are particularly welcome:
+
+* Data loading and preprocessing edge cases
+* Clustering algorithm robustness
+* Model training stability
+* Sensitivity analysis edge cases
+* Cross-platform compatibility issues
+
+Implement Features
+~~~~~~~~~~~~~~~~~~
+
+Look through the GitHub issues for features. Anything tagged with "enhancement"
+and "help wanted" is open to whoever wants to implement it.
+
+
+Write Documentation
+~~~~~~~~~~~~~~~~~~~
+
+pyBuildingCluster could always use more documentation, whether as part of the
+official docs, in docstrings, or even on the web in blog posts, articles, 
+and such.
+
+Documentation contributions needed:
+
+* **API documentation**: Comprehensive docstrings with examples
+* **Tutorials**: Step-by-step guides for common use cases
+* **Case studies**: Real-world building energy analysis examples
+* **Best practices**: Guidelines for clustering and sensitivity analysis
+* **FAQ**: Common questions and troubleshooting
+* **Research papers**: Academic publications using pyBuildingCluster
+
+Submit Feedback
+~~~~~~~~~~~~~~~
+
+The best way to send feedback is to file an issue at 
+https://github.com/EURAC-EEBgroup/pybuildingcluster/issues.
+
+If you are proposing a feature:
+
+* Explain in detail how it would work.
+* Provide use cases and examples from building energy analysis.
+* Keep the scope as narrow as possible, to make it easier to implement.
+* Consider backward compatibility with existing APIs.
+* Remember that this is a volunteer-driven project, and that contributions
+  are welcome :)
+
+Get Started!
+------------
+
+Ready to contribute? Here's how to set up `pybuildingcluster` for local development.
+
+1. Fork the `pybuildingcluster` repo on GitHub.
+
+2. Clone your fork locally::
+
+    $ git clone git@github.com:EURAC-EEBgroup/pybuildingcluster.git
+
+3. Install your local copy into a virtual environment. Using virtualenv::
+
+    $ cd pybuildingcluster/
+    $ python -m venv venv
+    $ source venv/bin/activate  # On Windows: venv\Scripts\activate
+    $ make setup  # This installs all dev dependencies
+
+4. Create a branch for local development::
+
+    $ git checkout -b name-of-your-bugfix-or-feature
+
+   Now you can make your changes locally.
+
+5. When you're done making changes, check that your changes pass flake8 and the
+   tests, including testing other Python versions with tox::
+
+    $ make check  # Runs format, lint, test, and security checks
+    $ make test   # Run tests with coverage
+    $ make lint   # Check code quality
+
+6. Commit your changes and push your branch to GitHub::
+
+    $ git add .
+    $ git commit -m "Your detailed description of your changes."
+    $ git push origin name-of-your-bugfix-or-feature
+
+7. Submit a pull request through the GitHub website.
+
+Development Workflow
+--------------------
+
+For efficient development, we recommend using the provided Makefile commands:
+
+Quick Development Cycle
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $ make dev-workflow  # Format + lint + test in one command
+
+Individual Commands
+~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $ make format        # Auto-format code with black and isort
+    $ make lint          # Run flake8, mypy, and import checks  
+    $ make test          # Run tests with coverage
+    $ make test-fast     # Quick tests without coverage
+    $ make test-watch    # Auto-run tests on file changes
+
+Examples and Testing
+~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $ make example       # Run example pyBuildingCluster analysis
+    $ make benchmark     # Performance benchmarks
+    $ make jupyter       # Start Jupyter for interactive development
+
+Documentation
+~~~~~~~~~~~~~
+
+::
+
+    $ make docs          # Build documentation
+    $ make docs-serve    # Serve docs with auto-reload
+    $ make docs-api      # Generate API documentation
+
+Pull Request Guidelines
+-----------------------
+
+Before you submit a pull request, check that it meets these guidelines:
+
+1. The pull request should include tests.
+2. If the pull request adds functionality, the docs should be updated. Put
+   your new functionality into a function with a docstring, and add the
+   feature to the list in README.rst.
+3. The pull request should work for Python 3.9 to 3.12.
+4. Check that all tests pass and coverage doesn't decrease significantly.
+
+Code Standards
+--------------
+
+Code Quality
+~~~~~~~~~~~~
+
+* Follow PEP 8 style guidelines (enforced by flake8)
+* Use type hints where appropriate (checked by mypy)
+* Write comprehensive docstrings for all public functions and classes
+* Add comments for complex algorithms or domain-specific logic
+
+Testing
+~~~~~~~
+
+* Write unit tests for all new functions and classes
+* Include integration tests for end-to-end workflows
+* Test edge cases and error conditions
+* Maintain test coverage above 80%
+* Use descriptive test names and organize tests logically
+
+Documentation
+~~~~~~~~~~~~~
+
+* Follow NumPy docstring conventions
+* Include examples in docstrings
+* Document all parameters, returns, and raises
+* Keep README.rst up to date with new features
+
+Example docstring format::
+
+    def perform_clustering(self, method: str = "silhouette") -> Dict:
+        """
+        Perform clustering analysis on building energy data.
+        
+        Parameters
+        ----------
+        method : str, default="silhouette"
+            Method for determining optimal cluster count.
+            Options: 'elbow', 'silhouette', 'calinski_harabasz'
+            
+        Returns
+        -------
+        Dict
+            Dictionary containing clustering results with keys:
+            - 'data_with_clusters': DataFrame with cluster assignments
+            - 'optimal_k': Optimal number of clusters
+            - 'statistics': Clustering statistics
+            
+        Raises
+        ------
+        ValueError
+            If method is not supported or data is not loaded
+            
+        Examples
+        --------
+        >>> analyzer = pyBuildingClusterAnalyzer("data.csv", ["QHnd", "degree_days"])
+        >>> analyzer.load_and_clean_data()
+        >>> results = analyzer.perform_clustering(method="silhouette")
+        >>> print(f"Optimal clusters: {results['optimal_k']}")
+        """
+
+Commit Message Guidelines
+-------------------------
+
+Use clear and descriptive commit messages:
+
+* Use present tense ("Add feature" not "Added feature")
+* Use imperative mood ("Move cursor to..." not "Moves cursor to...")
+* Limit first line to 72 characters or less
+* Reference issues and pull requests liberally after the first line
+
+
+Code Review Process
+-------------------
+
+All submissions go through code review:
+
+1. **Automated checks**: GitHub Actions runs tests, linting, and security checks
+2. **Manual review**: Maintainers review code quality, design, and documentation
+3. **Testing**: Contributors verify the changes work in different environments
+4. **Discussion**: Collaborative improvement through feedback and iteration
+
+Review criteria:
+
+* **Functionality**: Does it work as intended?
+* **Code quality**: Is it readable, maintainable, and well-structured?
+* **Testing**: Are there adequate tests with good coverage?
+* **Documentation**: Is it properly documented?
+* **Performance**: Does it maintain or improve performance?
+* **Compatibility**: Does it work across supported Python versions?
+
+Building Energy Domain Guidelines
+---------------------------------
+
+Since pyBuildingCluster focuses on building energy analysis, contributions should:
+
+* **Use domain terminology correctly**: Energy performance, transmittance, 
+  degree days, etc.
+* **Validate with building physics**: Ensure algorithms respect physical 
+  constraints and relationships
+* **Consider real-world data**: Handle missing data, outliers, and measurement 
+  errors common in building datasets
+* **Support common workflows**: Clustering → modeling → sensitivity → optimization
+* **Maintain energy units consistency**: Clearly document and convert energy 
+  units (kWh, MJ, BTU)
+
+Tips for Contributors
+---------------------
+
+Getting Started
+~~~~~~~~~~~~~~~
+
+* **Start small**: Begin with documentation improvements or bug fixes
+* **Ask questions**: Use GitHub discussions for clarification
+* **Read existing code**: Understand patterns and conventions
+* **Run examples**: Get familiar with the library functionality
+
+Building Energy Context
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* **Understand the domain**: Learn about building energy performance analysis
+* **Review literature**: Check research papers on clustering and sensitivity analysis
+* **Validate results**: Compare outputs with established methods and tools
+* **Consider practitioners**: Design APIs for ease of use by energy analysts
+
+Performance Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* **Large datasets**: Building databases can be very large (>100k buildings)
+* **Memory efficiency**: Use appropriate data types and chunk processing
+* **Computational speed**: Vectorized operations and parallel processing
+* **Caching**: Cache expensive computations like distance matrices
+
+Releasing
+---------
+
+A reminder for maintainers on how to deploy. Make sure all your changes are 
+committed (including an entry in HISTORY.rst). Then run::
+
+    $ make release-workflow  # Prepares release build
+    $ make publish-test      # Test on TestPyPI first  
+    $ make publish           # Deploy to PyPI
+
+The deployment process:
+
+1. Update version in ``pyproject.toml``
+2. Update ``CHANGELOG.md`` with new features and fixes
+3. Create git tag with version number
+4. Push changes and tags to GitHub  
+5. GitHub Actions automatically builds and publishes to PyPI
+
+Community and Communication
+---------------------------
+
+* **GitHub Issues**: Bug reports, feature requests, and discussions
+* **GitHub Discussions**: General questions and community conversations
+* **Documentation**: Comprehensive guides and API reference
+* **Examples**: Real-world use cases and tutorials
+
+Join our community of building energy researchers and practitioners working to
+make energy analysis more accessible and reproducible!
+
+Recognition
+-----------
+
+Contributors are recognized in:
+
+* **AUTHORS.rst**: All contributors listed
+* **Release notes**: Major contributions highlighted  
+* **Documentation**: Expert contributors featured
+* **Academic papers**: Co-authorship opportunities for significant contributions
+
+Thank you for contributing to pyBuildingCluster! 

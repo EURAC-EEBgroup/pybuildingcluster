@@ -1,0 +1,17 @@
+numpy
+pandas
+plotly
+pydantic
+pydantic_core
+python-dotenv
+scikit-learn
+scipy
+seaborn
+workalendar
+gunicorn
+tensorflow
+optuna
+matplotlib
+xgboost
+lightgbm
+joblib

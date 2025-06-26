@@ -1,0 +1,2 @@
+[console_scripts]
+pybuildingcluster-analysis = pybuildingcluster.cli:main

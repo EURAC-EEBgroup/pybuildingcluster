@@ -1,0 +1,298 @@
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Scenario Analysis Report - QHnd</title>
+            <style>
+                body { 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                    margin: 0; 
+                    padding: 20px; 
+                    background-color: #f5f5f5;
+                    line-height: 1.6;
+                }
+                .container { 
+                    max-width: 1200px; 
+                    margin: 0 auto; 
+                    background-color: white; 
+                    padding: 30px; 
+                    border-radius: 10px; 
+                    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                }
+                h1, h2, h3 { color: #2c3e50; margin-top: 30px; }
+                h1 { text-align: center; color: #34495e; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+                .summary { 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 25px; 
+                    border-radius: 10px; 
+                    margin: 20px 0;
+                }
+                .metric-card { 
+                    display: inline-block; 
+                    margin: 10px; 
+                    padding: 15px 20px; 
+                    background-color: #ecf0f1; 
+                    border-radius: 8px; 
+                    border-left: 4px solid #3498db;
+                    min-width: 180px;
+                    vertical-align: top;
+                }
+                .metric-value { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .metric-label { font-size: 14px; color: #7f8c8d; text-transform: uppercase; }
+                .metric-positive { color: #27ae60; }
+                .metric-negative { color: #e74c3c; }
+                table { 
+                    border-collapse: collapse; 
+                    width: 100%; 
+                    margin: 20px 0; 
+                    background-color: white;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }
+                th, td { 
+                    border: none; 
+                    padding: 12px 15px; 
+                    text-align: left; 
+                }
+                th { 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    font-weight: 600;
+                    font-size: 14px;
+                }
+                tr:nth-child(even) { background-color: #f8f9fa; }
+                tr:hover { background-color: #e3f2fd; transition: background-color 0.3s; }
+                .baseline-row { background-color: #fff3cd !important; border-left: 4px solid #ffc107; }
+                .positive-impact { color: #27ae60; font-weight: bold; }
+                .negative-impact { color: #e74c3c; font-weight: bold; }
+                .neutral-impact { color: #6c757d; }
+                .best-scenario { background-color: #d4edda !important; }
+                .worst-scenario { background-color: #f8d7da !important; }
+                .parameter-section { 
+                    margin: 25px 0; 
+                    padding: 20px; 
+                    border-left: 4px solid #3498db; 
+                    background-color: #f8f9fa;
+                    border-radius: 0 8px 8px 0;
+                }
+                .recommendation { 
+                    background-color: #d1ecf1; 
+                    border: 1px solid #bee5eb; 
+                    border-radius: 8px; 
+                    padding: 20px; 
+                    margin: 20px 0;
+                }
+                .recommendation h3 { margin-top: 0; color: #0c5460; }
+                .recommendation ul { margin: 0; }
+                .recommendation li { margin: 8px 0; }
+                .footer { 
+                    margin-top: 40px; 
+                    padding: 20px; 
+                    background-color: #34495e; 
+                    color: white; 
+                    border-radius: 8px; 
+                    text-align: center;
+                }
+                .progress-bar {
+                    background-color: #ecf0f1;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    height: 20px;
+                    margin: 5px 0;
+                    position: relative;
+                }
+                .progress-fill {
+                    height: 100%;
+                    transition: width 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 12px;
+                }
+                .progress-positive { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+                .progress-negative { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+                .emoji { font-size: 1.2em; }
+                .section-header { 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 15px 25px; 
+                    margin: 30px -30px 20px -30px; 
+                    border-radius: 0;
+                }
+                .ci-info { font-size: 12px; color: #6c757d; }
+                .param-chip { 
+                    display: inline-block; 
+                    background-color: #e9ecef; 
+                    padding: 3px 8px; 
+                    margin: 2px; 
+                    border-radius: 12px; 
+                    font-size: 11px; 
+                    color: #495057;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1> Scenario Analysis Report</h1>
+                <p style="text-align: center; color: #6c757d; margin-top: -10px;">
+                    Comprehensive analysis of parameter scenarios for <strong>QHnd</strong>
+                </p>
+                
+                <div class="summary">
+                    <h2><span class="emoji">📊</span> Analysis Overview</h2>
+                    <div class="metric-card">
+                        <div class="metric-label">Target Variable</div>
+                        <div class="metric-value">QHnd</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Scenarios</div>
+                        <div class="metric-value">11</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Parameters Tested</div>
+                        <div class="metric-value">2</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Baseline Prediction</div>
+                        <div class="metric-value">310752.4294</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Best Impact (Lower is Better)</div>
+                        <div class="metric-value metric-positive">-12.2%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Worst Impact (Higher is Worse)</div>
+                        <div class="metric-value metric-negative">+15.2%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Impact Range</div>
+                        <div class="metric-value">-12.2% to +15.2%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Features Used</div>
+                        <div class="metric-value">31</div>
+                    </div>
+                </div>
+        
+        <div class="section-header">
+            <h2><span class="emoji">📈</span> Scenario Results Summary</h2>
+        </div>
+        
+        <table>
+            <tr>
+                <th>Scenario</th><th>QHnd Prediction</th><th>Change from Baseline</th><th>Relative Impact</th><th>Visual Impact</th><th>Parameters</th>
+            </tr>
+        <tr class="baseline-row"><td><strong>Base (mean cluster)</strong></td><td>310752.4294</td><td>-</td><td class="neutral-impact">Baseline</td><td><span class="neutral-impact">Baseline</span></td><td><span class="param-chip">average_opaque_surface_transmittance=1.03</span><span class="param-chip">average_glazed_surface_transmittance=3.15</span></td></tr><tr class="best-scenario"><td><strong>High Efficiency Optimal</strong></td><td>272719.7137</td><td>-38032.7157</td><td class="positive-impact">-12.2% (Better)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-positive" style="width: 80.50065627373768%">
+                            -12.2%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=0.15</span><span class="param-chip">average_glazed_surface_transmittance=1.20</span></td></tr><tr class="worst-scenario"><td><strong>Low Efficiency Worst</strong></td><td>357997.6538</td><td>+47245.2244</td><td class="negative-impact">+15.2% (Worse)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-negative" style="width: 100.0%">
+                            15.2%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=2.80</span><span class="param-chip">average_glazed_surface_transmittance=5.50</span></td></tr><tr class=""><td><strong>Balanced Performance</strong></td><td>342147.0474</td><td>+31394.6180</td><td class="negative-impact">+10.1% (Worse)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-negative" style="width: 66.45035217570039%">
+                            10.1%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=1.47</span><span class="param-chip">average_glazed_surface_transmittance=3.35</span></td></tr><tr class=""><td><strong>Optimized Envelope</strong></td><td>302393.0692</td><td>-8359.3602</td><td class="positive-impact">-2.7% (Better)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-positive" style="width: 17.69355592265957%">
+                            -2.7%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=0.68</span><span class="param-chip">average_glazed_surface_transmittance=2.92</span></td></tr><tr class=""><td><strong>Advanced Glazing</strong></td><td>309164.3462</td><td>-1588.0832</td><td class="positive-impact">-0.5% (Better)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-positive" style="width: 3.3613623814219737%">
+                            -0.5%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=1.21</span><span class="param-chip">average_glazed_surface_transmittance=2.06</span></td></tr><tr class=""><td><strong>Conservative Upgrade</strong></td><td>303785.0196</td><td>-6967.4098</td><td class="positive-impact">-2.2% (Better)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-positive" style="width: 14.747331372607537%">
+                            -2.2%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=0.94</span><span class="param-chip">average_glazed_surface_transmittance=2.49</span></td></tr><tr class=""><td><strong>Aggressive Efficiency</strong></td><td>285465.2934</td><td>-25287.1360</td><td class="positive-impact">-8.1% (Better)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-positive" style="width: 53.52315778184773%">
+                            -8.1%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=0.42</span><span class="param-chip">average_glazed_surface_transmittance=1.84</span></td></tr><tr class=""><td><strong>Current Market Standard</strong></td><td>354269.9880</td><td>+43517.5586</td><td class="negative-impact">+14.0% (Worse)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-negative" style="width: 92.1099627584793%">
+                            14.0%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=1.74</span><span class="param-chip">average_glazed_surface_transmittance=3.35</span></td></tr><tr class=""><td><strong>Economic Retrofit</strong></td><td>340012.5008</td><td>+29260.0714</td><td class="negative-impact">+9.4% (Worse)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-negative" style="width: 61.932336594002905%">
+                            9.4%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=1.34</span><span class="param-chip">average_glazed_surface_transmittance=2.71</span></td></tr><tr class=""><td><strong>High Performance Realistic</strong></td><td>288212.7247</td><td>-22539.7047</td><td class="positive-impact">-7.3% (Better)</td><td>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-positive" style="width: 47.70790061058524%">
+                            -7.3%
+                        </div>
+                    </div>
+                </td><td><span class="param-chip">average_opaque_surface_transmittance=0.55</span><span class="param-chip">average_glazed_surface_transmittance=2.27</span></td></tr></table>
+            <div class="section-header">
+                <h2><span class="emoji">🏆</span> Best & Worst Scenarios</h2>
+            </div>
+            
+            <div style="display: flex; gap: 20px; margin: 20px 0;">
+                <div style="flex: 1; padding: 20px; background-color: #d4edda; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h3 style="color: #155724; margin-top: 0;"><span class="emoji">🥇</span> Best Performing Scenario</h3>
+                    <p><strong>Scenario:</strong> High Efficiency Optimal</p>
+                    <p><strong>Prediction:</strong> 272719.7137</p>
+                    <p><strong>Impact:</strong> <span class="positive-impact">-12.2% (Better)</span></p>
+                    <p><strong>Absolute Change:</strong> -38032.7157</p>
+                </div>
+                <div style="flex: 1; padding: 20px; background-color: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545;">
+                    <h3 style="color: #721c24; margin-top: 0;"><span class="emoji">⚠️</span> Worst Performing Scenario</h3>
+                    <p><strong>Scenario:</strong> Low Efficiency Worst</p>
+                    <p><strong>Prediction:</strong> 357997.6538</p>
+                    <p><strong>Impact:</strong> <span class="negative-impact">+15.2% (Worse)</span></p>
+                    <p><strong>Absolute Change:</strong> +47245.2244</p>
+                </div>
+            </div>
+            
+        <div class="recommendation">
+            <h3><span class="emoji">💡</span> Key Findings & Recommendations</h3>
+        <p><span class='emoji'>📍</span> <strong>Impact Range:</strong> Scenarios show impacts ranging from -12.2% (best) to +15.2% (worst)</p><p><span class='emoji'>📍</span> <strong>Improvement Scenarios:</strong> 6 out of 10 scenarios show improvement (negative variation)</p><p><span class='emoji'>📍</span> <strong>Risk Scenarios:</strong> 4 scenarios show degradation (positive variation) requiring attention</p><p><span class='emoji'>📍</span> <strong>Variability:</strong> Standard deviation of 9.9% indicates high scenario variability</p>
+            <h4><span class="emoji">📋</span> Recommended Actions:</h4>
+            <ul>
+                <li><span class="emoji">🎯</span> <strong>Implement best scenario:</strong> Focus on parameters from "High Efficiency Optimal" scenario</li>
+                <li><span class="emoji">⚠️</span> <strong>Avoid risk scenarios:</strong> Monitor conditions that lead to "Low Efficiency Worst" outcomes</li>
+                <li><span class="emoji">📊</span> <strong>Parameter optimization:</strong> Fine-tune the 2 analyzed parameters for optimal QHnd</li>
+                <li><span class="emoji">🔍</span> <strong>Sensitivity monitoring:</strong> Track parameters with highest impact on QHnd</li>
+                <li><span class="emoji">📈</span> <strong>Scenario planning:</strong> Use this analysis for strategic decision-making</li>
+                <li><span class="emoji">🔄</span> <strong>Regular updates:</strong> Re-run analysis with new data to validate findings</li>
+                
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p><span class="emoji">📄</span> <strong>Report generated on:</strong> 2025-06-26 11:26:50</p>
+            <p><span class="emoji">🔬</span> <strong>Analysis method:</strong> Scenario Comparison Analysis</p>
+            <p><span class="emoji">📊</span> <strong>Total scenarios analyzed:</strong> 11 (including baseline)</p>
+            <p><span class="emoji">🎯</span> <strong>Target variable:</strong> QHnd</p>
+        </div>
+        
+        </div>
+        </body>
+        </html>
+        

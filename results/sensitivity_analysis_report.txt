@@ -1,0 +1,93 @@
+SENSITIVITY ANALYSIS REPORT
+==================================================
+
+ANALYSIS OVERVIEW:
+Analysis types performed: one_at_a_time, scenario
+Parameters analyzed: insulation_thickness, window_u_value, hvac_efficiency, occupancy_density
+Number of clusters: 3
+Feature columns: building_area, insulation_thickness, window_u_value, hvac_efficiency, occupancy_density, ventilation_rate
+
+ONE-AT-A-TIME SENSITIVITY ANALYSIS:
+----------------------------------------
+Cluster 0:
+  insulation_thickness: 0.0005
+  window_u_value: 0.0000
+  hvac_efficiency: 0.0000
+  occupancy_density: 0.0000
+
+Cluster 1:
+  insulation_thickness: 0.0008
+  window_u_value: 0.0004
+  hvac_efficiency: 0.0000
+  occupancy_density: 0.0000
+
+Cluster 2:
+  insulation_thickness: 0.0021
+  window_u_value: 0.0008
+  hvac_efficiency: 0.0004
+  occupancy_density: 0.0000
+
+OVERALL PARAMETER RANKING (by average sensitivity):
+  1. insulation_thickness: 0.0012 ± 0.0007
+  2. window_u_value: 0.0004 ± 0.0003
+  3. hvac_efficiency: 0.0001 ± 0.0002
+  4. occupancy_density: 0.0000 ± 0.0000
+
+SCENARIO ANALYSIS:
+----------------------------------------
+Scenario 'conservative':
+  Parameters: {'insulation_thickness': 0.05, 'window_u_value': 0.5, 'hvac_efficiency': 0.6, 'occupancy_density': 8}
+  Average impact: -0.07% ± 0.23%
+
+Scenario 'aggressive':
+  Parameters: {'insulation_thickness': 0.4, 'window_u_value': 2.5, 'hvac_efficiency': 0.95, 'occupancy_density': 25}
+  Average impact: -0.00% ± 0.01%
+
+Scenario 'balanced':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 1.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 16.5}
+  Average impact: 0.00% ± 0.05%
+
+Scenario 'insulation_thickness_high':
+  Parameters: {'insulation_thickness': 0.4, 'window_u_value': 1.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 16.5}
+  Average impact: -0.00% ± 0.01%
+
+Scenario 'insulation_thickness_low':
+  Parameters: {'insulation_thickness': 0.05, 'window_u_value': 1.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 16.5}
+  Average impact: 0.03% ± 0.26%
+
+Scenario 'window_u_value_high':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 2.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 16.5}
+  Average impact: 0.00% ± 0.05%
+
+Scenario 'window_u_value_low':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 0.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 16.5}
+  Average impact: -0.15% ± 0.09%
+
+Scenario 'hvac_efficiency_high':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 1.5, 'hvac_efficiency': 0.95, 'occupancy_density': 16.5}
+  Average impact: 0.00% ± 0.05%
+
+Scenario 'hvac_efficiency_low':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 1.5, 'hvac_efficiency': 0.6, 'occupancy_density': 16.5}
+  Average impact: 0.06% ± 0.13%
+
+Scenario 'occupancy_density_high':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 1.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 25}
+  Average impact: 0.00% ± 0.05%
+
+Scenario 'occupancy_density_low':
+  Parameters: {'insulation_thickness': 0.225, 'window_u_value': 1.5, 'hvac_efficiency': 0.7749999999999999, 'occupancy_density': 8}
+  Average impact: 0.00% ± 0.05%
+
+SUMMARY AND RECOMMENDATIONS:
+----------------------------------------
+Most sensitive parameters identified:
+  - hvac_efficiency
+  - window_u_value
+  - insulation_thickness
+
+Recommendations:
+1. Focus optimization efforts on the most sensitive parameters
+2. Monitor these parameters closely during operation
+3. Consider robust control strategies for high-sensitivity parameters
+4. Validate sensitivity results with additional data if available

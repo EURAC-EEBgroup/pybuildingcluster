@@ -1,0 +1,127 @@
+Metadata-Version: 2.4
+Name: pybuildingcluster
+Version: 1.0.0
+Summary: A Python library for clustering energy performance data and conducting sensitivity analysis on building clusters
+Home-page: https://github.com/EURAC-EEBgroup/pybuildingcluster
+Author: Daniele Antonucci
+Author-email: daniele.antonucci@eurac.edu
+Project-URL: Bug Reports, https://github.com/EURAC-EEBgroup/pybuildingcluster/issues
+Project-URL: Source, https://github.com/EURAC-EEBgroup/pybuildingcluster
+Project-URL: Documentation, https://github.com/EURAC-EEBgroup/pybuildingcluster
+Keywords: clustering sensitivity analysis energy efficiency buildings machine learning
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: pydantic
+Requires-Dist: pydantic_core
+Requires-Dist: python-dotenv
+Requires-Dist: scikit-learn
+Requires-Dist: scipy
+Requires-Dist: seaborn
+Requires-Dist: workalendar
+Requires-Dist: gunicorn
+Requires-Dist: tensorflow
+Requires-Dist: optuna
+Requires-Dist: matplotlib
+Requires-Dist: xgboost
+Requires-Dist: lightgbm
+Requires-Dist: joblib
+Provides-Extra: dev
+Requires-Dist: pytest>=6.0; extra == "dev"
+Requires-Dist: pytest-cov>=2.10; extra == "dev"
+Requires-Dist: black>=21.0; extra == "dev"
+Requires-Dist: flake8>=3.8; extra == "dev"
+Requires-Dist: mypy>=0.800; extra == "dev"
+Requires-Dist: isort>=5.0; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: sphinx>=4.0; extra == "docs"
+Requires-Dist: sphinx-rtd-theme>=1.0; extra == "docs"
+Provides-Extra: interactive
+Requires-Dist: jupyter>=1.0.0; extra == "interactive"
+Requires-Dist: ipywidgets>=7.6.0; extra == "interactive"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license-file
+Dynamic: project-url
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# Geoclustering Sensitivity Analysis
+
+A Python library for sensitivity analysis of building clusters, evaluating refurbishment scenarios.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
+## Overview
+
+This library provides comprehensive tools for analyzing building energy performance data through clustering, regression modeling, and sensitivity analysis. It was developed by the Energy Efficient Buildings group at EURAC Research as part of the MODERATE project (Horizon Europe grant agreement No 101069834).
+
+### Key Features
+
+- **Clustering Analysis**: K-means clustering with automatic cluster number determination using elbow method or silhouette analysis
+- **Regression Modeling**: Support for Random Forest, XGBoost, and LightGBM models with automatic model selection
+- **Sensitivity Analysis**: Scenario-based analysis to understand parameter impacts on clusters
+- **Parameter Optimization**: Optuna-based optimization for finding optimal parameter combinations
+- **CLI Interface**: Command-line tools for easy integration into workflows
+- **Extensible Design**: Modular architecture for easy customization and extension
+
+## Installation
+
+### From PyPI (recommended)
+
+```bash
+pip install geoclustering-sensitivity-analysis
+```
+
+### From Source
+
+```bash
+git clone https://github.com/EURAC-EEBgroup/pybuildingcluster_analysis.git
+cd pybuildingcluster_analysis
+pip install -e .
+```
+
+### Development Installation
+
+```bash
+git clone https://github.com/EURAC-EEBgroup/pybuildingcluster_analysis.git
+cd pybuildingcluster_analysis
+pip install -e ".[dev]"
+```
+
+## Quick Start
+
+### Python API
+
+```python
+from pybuildingcluster import GeoClusteringAnalyzer
+
+# Initialize analyzer
+analyzer = GeoClusteringAnalyzer(
+    data_path="path/to/your/data.csv",
+    columns_selected=["feature1", "feature2", "feature3"],
+    cluster_method_stat="elbow

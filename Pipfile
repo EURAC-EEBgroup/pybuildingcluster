@@ -1,0 +1,30 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "==2.1.3"
+pandas = "==2.2.3"
+plotly = "==5.24.1"
+pydantic = "==2.10.5"
+pydantic-core = "==2.27.2"
+python-dotenv = "==1.0.1"
+scikit-learn = "==1.6.1"
+scipy = "==1.15.1"
+seaborn = "==0.13.2"
+workalendar = "==17.0.0"
+gunicorn = "==23.0.0"
+xgboost = "==2.1.4"
+lightgbm = "==4.6.0"
+joblib = "==1.4.2"
+tensorflow = "==2.19.0"
+optuna = "==4.3.0"
+matplotlib = "==3.8.2"
+
+[dev-packages]
+ipykernel = "*"
+
+[requires]
+python_version = "3.12"
+python_full_version = "3.12.6"

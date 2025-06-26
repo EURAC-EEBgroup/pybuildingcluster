@@ -1,0 +1,184 @@
+# Geoclustering Sensitivity Analysis - Default Configuration
+# ==========================================================
+# This file contains default parameters for all analysis components
+
+# General Settings
+# ================
+general:
+  random_state: 42
+  n_jobs: -1  # Use all available cores
+  verbose: true
+  save_results: true
+  output_format: ["csv", "excel"]  # Available: csv, excel, json
+
+# Data Loading Configuration
+# ===========================
+data_loading:
+  # File parsing settings
+  encoding: "utf-8"
+  low_memory: false
+  parse_dates: true
+  infer_datetime_format: true
+  
+  # Alternative encodings to try if UTF-8 fails
+  fallback_encodings: ["latin-1", "iso-8859-1", "cp1252"]
+  
+  # Alternative separators to try for CSV
+  fallback_separators: [";", "\t", "|"]
+  
+  # Data validation
+  validation:
+    min_rows: 20
+    max_missing_percentage: 50  # Remove columns with >50% missing values
+    check_duplicates: true
+    
+  # Data cleaning defaults
+  cleaning:
+    remove_duplicates: true
+    remove_empty_columns: true
+    remove_single_value_columns: true
+    missing_threshold: 0.5  # Remove columns with >50% missing
+    fill_missing_strategy: "median"  # Options: mean, median, mode, forward, backward, null
+
+# Clustering Configuration
+# ========================
+clustering:
+  # Default clustering method
+  method: "kmeans"  # Options: kmeans, dbscan, hierarchical
+  
+  # Cluster number determination
+  cluster_determination:
+    method: "elbow"  # Options: elbow, silhouette, calinski_harabasz
+    k_range: [2, 15]  # Range for optimal cluster search
+    plot_results: true
+  
+  # K-means specific parameters
+  kmeans:
+    n_init: 10
+    max_iter: 300
+    tol: 1e-4
+    algorithm: "auto"
+  
+  # DBSCAN specific parameters
+  dbscan:
+    eps: 0.5
+    min_samples: 5
+    metric: "euclidean"
+  
+  # Hierarchical clustering parameters
+  hierarchical:
+    linkage: "ward"  # Options: ward, complete, average, single
+    metric: "euclidean"
+  
+  # Feature scaling
+  scale_features: true
+  scaler_type: "standard"  # Options: standard, minmax, robust
+  
+  # Output settings
+  save_clusters: true
+  clusters_output_dir: "data/clusters"
+  plot_clusters: true
+
+# Regression Modeling Configuration
+# ==================================
+regression:
+  # Models to train
+  models_to_train: ["random_forest", "xgboost", "lightgbm"]
+  
+  # Train/test split
+  test_size: 0.2
+  scale_features: true
+  
+  # Hyperparameter tuning
+  hyperparameter_tuning: "randomized"  # Options: grid, randomized, none
+  cv_folds: 5
+  n_iter_random_search: 50
+  
+  # Model selection criteria
+  selection_metric: "cv_rmse"  # Primary metric for best model selection
+  
+  # Performance thresholds
+  min_r2_score: 0.3  # Minimum acceptable R² score
+  max_rmse_ratio: 2.0  # Maximum RMSE relative to target std
+  
+  # Random Forest parameters
+  random_forest:
+    default_params:
+      n_estimators: 100
+      max_depth: null
+      min_samples_split: 2
+      min_samples_leaf: 1
+      max_features: "sqrt"
+    
+    param_grid:
+      n_estimators: [100, 200, 300]
+      max_depth: [10, 20, 30, null]
+      min_samples_split: [2, 5, 10]
+      min_samples_leaf: [1, 2, 4]
+      max_features: ["sqrt", "log2"]
+    
+    param_distributions:
+      n_estimators: [50, 100, 200, 300, 500]
+      max_depth: [5, 10, 15, 20, 25, 30, null]
+      min_samples_split: [2, 5, 10, 15]
+      min_samples_leaf: [1, 2, 4, 6]
+      max_features: ["sqrt", "log2", 0.5, 0.7, 0.9]
+  
+  # XGBoost parameters
+  xgboost:
+    default_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 1.0
+      colsample_bytree: 1.0
+      verbosity: 0
+    
+    param_grid:
+      n_estimators: [100, 200, 300]
+      max_depth: [3, 6, 9]
+      learning_rate: [0.01, 0.1, 0.2]
+      subsample: [0.8, 0.9, 1.0]
+      colsample_bytree: [0.8, 0.9, 1.0]
+    
+    param_distributions:
+      n_estimators: [50, 100, 200, 300, 500]
+      max_depth: [3, 4, 5, 6, 7, 8, 9]
+      learning_rate: [0.01, 0.05, 0.1, 0.15, 0.2]
+      subsample: [0.7, 0.8, 0.9, 1.0]
+      colsample_bytree: [0.7, 0.8, 0.9, 1.0]
+      reg_alpha: [0, 0.1, 0.5, 1.0]
+      reg_lambda: [0, 0.1, 0.5, 1.0]
+  
+  # LightGBM parameters
+  lightgbm:
+    default_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 1.0
+      verbosity: -1
+    
+    param_grid:
+      n_estimators: [100, 200, 300]
+      max_depth: [3, 6, 9]
+      learning_rate: [0.01, 0.1, 0.2]
+      num_leaves: [31, 50, 70]
+      subsample: [0.8, 0.9, 1.0]
+    
+    param_distributions:
+      n_estimators: [50, 100, 200, 300, 500]
+      max_depth: [3, 4, 5, 6, 7, 8, 9]
+      learning_rate: [0.01, 0.05, 0.1, 0.15, 0.2]
+      num_leaves: [15, 31, 50, 70, 100]
+      subsample: [0.7, 0.8, 0.9, 1.0]
+      colsample_bytree: [0.7, 0.8, 0.9, 1.0]
+      reg_alpha: [0, 0.1, 0.5, 1.0]
+      reg_lambda: [0, 0.1, 0.5, 1.0]
+  
+  # Output settings
+  save_models: true
+  models_dir: "models"
+  save_predictions: true
+  plot_results: true
