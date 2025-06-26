@@ -1,3 +1,5 @@
+AUTHORS.rst
+HISTORY.rst
 LICENSE
 MANIFEST.in
 README.md
@@ -15,10 +17,6 @@ src/pybuildingcluster/data/__init__.py
 src/pybuildingcluster/data/loader.py
 src/pybuildingcluster/utils/__init__.py
 src/pybuildingcluster/utils/config.py
-src/pybuildingcluster/utils/metrics.py
-src/pybuildingcluster/utils/plotting.py
 tests/__init__.py
 tests/test_clustering.py
 tests/test_integration.py
-tests/test_regression.py
-tests/test_sensitivity.py
