@@ -1,4 +1,11 @@
-# Translate in english 
+"""
+Generate Building Scenarios
+============================
+
+This example demonstrates how to generate building scenarios
+for energy analysis using PyBuildingCluster.
+"""
+
 # Assuming that cluster_1_limits is defined as:
 cluster_1_limits = {
     'average_opaque_surface_transmittance': {'min': 0.15, 'max': 2.8},  # Example values
