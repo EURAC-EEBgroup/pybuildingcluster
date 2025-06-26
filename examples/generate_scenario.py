@@ -3,7 +3,7 @@ Generate Building Scenarios
 ============================
 
 This example demonstrates how to generate building scenarios
-for energy analysis using PyBuildingCluster.
+for energy analysis.
 """
 
 # Assuming that cluster_1_limits is defined as:

@@ -1,4 +1,10 @@
 
+
+"""
+Example of pybuildingcluster application
+============================
+"""
+
 import pandas as pd
 import pybuildingcluster as pbui
 import numpy as np
