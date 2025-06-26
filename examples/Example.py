@@ -6,32 +6,33 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Carica variabili d'ambiente
+# Use environment variables
 def setup_environment():
-    """Setup environment con fallback se .env non esiste"""
+    """Setup environment with fallback if .env doesn't exist"""
     
-    # Prova a caricare .env
+    # Try to load .env
     env_loaded = load_dotenv()
     
     if not env_loaded:
-        print("⚠️ File .env non trovato, creando configurazione di default...")
+        print("⚠️ File .env not found, creating the default configuration...")
         
-        # Crea file .env se non esiste
+        
+        # Create file .env if 
         env_content = f"""# Configurazione Paths
-CLUSTERING_CSV_PATH=/Users/dantonucci/Documents/gitLab/pybuildingcluster/src/pybuildingcluster/data/clustering.csv
-DATA_DIR=/Users/dantonucci/Documents/gitLab/pybuildingcluster/src/pybuildingcluster/data
-RESULTS_DIR=/Users/dantonucci/Documents/gitLab/pybuildingcluster/results
-MODELS_DIR=/Users/dantonucci/Documents/gitLab/pybuildingcluster/models
+CLUSTERING_CSV_PATH=.../data/clustering.csv
+DATA_DIR=.../pybuildingcluster/data
+RESULTS_DIR=.../pybuildingcluster/results
+MODELS_DIR=.../pybuildingcluster/models
 """
         
         env_file = Path('.env')
         env_file.write_text(env_content.strip())
-        print(f"✅ File .env creato: {env_file.absolute()}")
+        print(f"✅ File .env created: {env_file.absolute()}")
         
-        # Ricarica dopo aver creato il file
+        # Reload after creating the file
         load_dotenv()
     else:
-        print("✅ File .env caricato con successo")
+        print("✅ File .env successfully loaded")
 
 # Setup environment
 setup_environment()
@@ -79,17 +80,17 @@ def validate_data_path(file_path):
 def load_building_data():
     """Carica i dati degli edifici con gestione errori"""
     
-    # Ottieni path dal .env
+    # Get path from .env
     csv_path = os.getenv('CLUSTERING_CSV_PATH')
     
     if not csv_path:
-        print("⚠️ CLUSTERING_CSV_PATH non trovato nel .env")
-        # Fallback al path hardcoded
+        print("⚠️ CLUSTERING_CSV_PATH not found in .env")
+        # Fallback to hardcoded path
         csv_path = "/Users/dantonucci/Documents/gitLab/pybuildingcluster/src/pybuildingcluster/data/clustering.csv"
     
-    print(f"📂 Caricamento dati da: {csv_path}")
+    print(f"📂 Loading data from: {csv_path}")
     
-    # Valida che il file esista
+    # Validate that the file exists
     csv_path = validate_data_path(csv_path)
     
     try:
@@ -106,14 +107,14 @@ def load_building_data():
         print(f"✅ Dataset caricato: {df.shape[0]} righe, {df.shape[1]} colonne")
         
         # Data cleaning
-        print("🧹 Pulizia dati in corso...")
+        print("🧹 Data cleaning in progress...")
         
-        # Rimuovi colonna energy_vectors_used se esiste
+        # Remove energy_vectors_used column if exists
         if 'energy_vectors_used' in df.columns:
             del df['energy_vectors_used']
-            print("   • Rimossa colonna 'energy_vectors_used'")
+            print("   • energy_vectors_used column removed")
         
-        # Rimuovi righe con caratteri problematici
+        # Remove rows with problematic characters
         initial_rows = len(df)
         df = df[~df.apply(lambda row: row.astype(str).str.contains("\\n\\t\\t\\t\\t\\t\\t").any(), axis=1)]
         df = df[~df.apply(lambda row: row.astype(str).str.contains("\n").any(), axis=1)]
@@ -123,21 +124,21 @@ def load_building_data():
         removed_rows = initial_rows - cleaned_rows
         
         if removed_rows > 0:
-            print(f"   • Rimosse {removed_rows} righe con caratteri problematici")
+            print(f"   • {removed_rows} rows removed with problematic characters")
         
-        print(f"✅ Dataset pulito: {df.shape[0]} righe, {df.shape[1]} colonne")
+        print(f"✅ Dataset cleaned: {df.shape[0]} rows, {df.shape[1]} columns")
         
         return df
         
     except Exception as e:
-        print(f"❌ Errore nel caricamento dati: {e}")
+        print(f"❌ Error loading data: {e}")
         raise
 
 # ======= Main Data Processing =======
-print("🚀 Avvio analisi cluster edifici...")
+print("🚀 Starting building cluster analysis...")
 print("=" * 50)
 
-# Carica i dati
+# Load data
 df = load_building_data()
 
 # Subset for clustering 
@@ -145,66 +146,66 @@ building_data = df.copy()
 
 # Feature columns for clustering
 feature_columns = ['QHnd', 'degree_days']
-print(f"📊 Feature per clustering: {feature_columns}")
+print(f"📊 Feature for clustering: {feature_columns}")
 
 # Feature columns for regression
 feature_columns_regression_ = feature_columns_regression(building_data)
-print(f"📈 Feature per regressione: {len(feature_columns_regression_)} colonne")
-print(f"   Prime 10: {feature_columns_regression_[:10]}")
+print(f"📈 Feature for regression: {len(feature_columns_regression_)} columns")
+print(f"   First 10: {feature_columns_regression_[:10]}")
 
-# Informazioni dataset
-print(f"\n📋 Informazioni Dataset:")
+# Dataset information
+print(f"\n📋 Dataset information:")
 print(f"   • Forma: {building_data.shape}")
-print(f"   • Valori mancanti: {building_data.isnull().sum().sum()}")
-print(f"   • Tipi di dati:")
+print(f"   • Missing values: {building_data.isnull().sum().sum()}")
+print(f"   • Data types:")
 for dtype in building_data.dtypes.value_counts().items():
-    print(f"     - {dtype[0]}: {dtype[1]} colonne")
+    print(f"     - {dtype[0]}: {dtype[1]} columns")
 
-# Verifica directory per output
+# Verify output directory
 results_dir = Path(os.getenv('RESULTS_DIR', './results'))
 results_dir.mkdir(exist_ok=True)
-print(f"📁 Directory risultati: {results_dir.absolute()}")
+print(f"📁 Directory results: {results_dir.absolute()}")
 
-print("\n✅ Setup completato! Pronto per l'analisi cluster.")
+print("\n✅ Setup completed! Ready for cluster analysis.")
 
 
 #%%
 # ======= Data Exploration =======
 def explore_dataset(df):
-    """Esplorazione rapida del dataset"""
+    """Quick dataset exploration"""
     
-    print("\n🔍 ESPLORAZIONE DATASET:")
+    print("\n🔍 ANALYSIS DATASET:")
     print("=" * 40)
     
-    # Statistiche base
-    print(f"📊 Statistiche base:")
-    print(f"   • Righe: {len(df):,}")
-    print(f"   • Colonne: {len(df.columns):,}")
-    print(f"   • Memoria: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
+    # Basic statistics
+    print(f"📊 Basic statistics:")
+    print(f"   • Rows: {len(df):,}")
+    print(f"   • Columns: {len(df.columns):,}")
+    print(f"   • Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
     
-    # Valori mancanti
+    # Missing values
     missing = df.isnull().sum()
     missing_cols = missing[missing > 0]
     if len(missing_cols) > 0:
-        print(f"\n⚠️ Colonne con valori mancanti:")
+        print(f"\n⚠️ Columns with missing values:")
         for col, count in missing_cols.head(10).items():
             pct = count / len(df) * 100
             print(f"   • {col}: {count:,} ({pct:.1f}%)")
     else:
-        print(f"✅ Nessun valore mancante")
+        print(f"✅ No missing values")
     
-    # Colonne numeriche key
+    # Numeric columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     key_cols = ['EPh', 'QHnd', 'degree_days', 'net_area']
     available_key_cols = [col for col in key_cols if col in numeric_cols]
     
     if available_key_cols:
-        print(f"\n📈 Statistiche colonne chiave:")
+        print(f"\n📈 Statistics for key columns:")
         print(df[available_key_cols].describe().round(2))
     
     return df
 
-# Esplora il dataset
+# Explore dataset
 building_data = explore_dataset(building_data)
 # Feature columns for clustering
 feature_columns = ['QHnd', 'degree_days']

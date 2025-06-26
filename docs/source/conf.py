@@ -60,14 +60,6 @@ napoleon_preprocess_types = False
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
 
-# Autodoc settings
-autodoc_default_options = {
-    'members': True,
-    'member-order': 'bysource',
-    'special-members': '__init__',
-    'undoc-members': True,
-    'exclude-members': '__weakref__'
-}
 
 # Autosummary settings
 autosummary_generate = True
@@ -258,24 +250,8 @@ nbsphinx_prolog = r"""
     __ https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/{{ docname }}
 """
 
-# -- Options for sphinx-gallery ----------------------------------------------
 
-sphinx_gallery_conf = {
-    'ignore_pattern': r'__init__\.py',
-    'download_all_examples': False,
-    'plot_gallery': 'True',              # generate plots for examples
-    'remove_config_comments': True,
-    'expected_failing_examples': [],
-    'matplotlib_animations': True,
-    'image_scrapers': ('matplotlib',),
-    'reset_modules': ('matplotlib', 'seaborn'),
-    'first_notebook_cell': (
-        "# This cell is added by sphinx-gallery\n"
-        "# It can be customized to fit your package\n"
-        "import numpy as np\n"
-        "import matplotlib.pyplot as plt"
-    ),
-}
+
 
 # -- Custom functions --------------------------------------------------------
 
@@ -318,3 +294,42 @@ myst_enable_extensions = [
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
 copybutton_only_copy_prompt_lines = True
+
+
+import os
+nbsphinx_prolog = ""  # Empty to avoid template errors
+
+# Fix for duplicate autodoc
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'private-members': False,
+    'special-members': False,
+    'inherited-members': False,
+    'show-inheritance': True,
+}
+
+# Suppression of warnings for missing modules
+autodoc_mock_imports = [
+    'pybuildingcluster.constants',
+    'pybuildingcluster.exceptions', 
+    'pybuildingcluster.types'
+]
+
+# Fix for missing toctree references
+suppress_warnings = [
+    'toc.not_readable',
+    'autodoc.import_object'
+]
+
+# Sphinx-Gallery config simplified
+sphinx_gallery_conf = {
+    'examples_dirs': '../../examples',
+    'gallery_dirs': 'auto_examples',
+    'filename_pattern': '/plot_',
+    'ignore_pattern': r'__init__\.py',
+    'download_all_examples': False,
+    'plot_gallery': True,
+    'remove_config_comments': True,
+    'expected_failing_examples': [],
+}

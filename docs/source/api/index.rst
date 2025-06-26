@@ -2,22 +2,20 @@
 API Reference
 =============
 
-This section contains the complete API documentation for pyBuildingCluster.
+This page contains the API reference for PyBuildingCluster.
 
 Main Classes
-============
-
-.. currentmodule:: pybuildingcluster
+------------
 
 .. autosummary::
    :toctree: generated/
-   :template: class.rst
+   :nosignatures:
 
-   GeoClusteringAnalyzer
-   ClusteringAnalyzer
-   RegressionModelBuilder
-   SensitivityAnalyzer
-
+   pybuildingcluster.ClusteringAnalyzer
+   pybuildingcluster.GeoClusteringAnalyzer
+   pybuildingcluster.RegressionModelBuilder
+   pybuildingcluster.SensitivityAnalyzer
+   
 Core Modules
 ============
 
