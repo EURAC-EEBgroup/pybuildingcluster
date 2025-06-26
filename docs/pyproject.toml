@@ -1,0 +1,478 @@
+[build-system]
+requires = ["hatchling>=1.13.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pybuildingcluster"
+version = "1.3.0"
+description = "A comprehensive Python library for building energy clustering, regression modeling, and sensitivity analysis"
+readme = "README.rst"
+license = { text = "BSD-3-Clause" }
+authors = [
+    { name = "Daniele Antonucci", email = "daniele.antonucci@eurac.edu" },
+]
+maintainers = [
+    { name = "Daniele Antonucci", email = "daniele.antonucci@eurac.edu" },
+]
+keywords = [
+    "building-energy",
+    "clustering",
+    "machine-learning",
+    "sensitivity-analysis",
+    "energy-efficiency",
+    "building-performance",
+    "energy-modeling",
+    "retrofit-analysis",
+    "sustainability",
+    "building-stock",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "scipy>=1.10.0",
+    "joblib>=1.3.0",
+    "tqdm>=4.65.0",
+    "pyyaml>=6.0",
+    "jinja2>=3.1.0",
+]
+
+[project.optional-dependencies]
+ml = [
+    "xgboost>=2.0.0",
+    "lightgbm>=4.0.0",
+    "optuna>=3.0.0",
+]
+viz = [
+    "plotly>=5.15.0",
+    "bokeh>=3.0.0",
+    "ipywidgets>=8.0.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-benchmark>=4.0.0",
+    "pytest-xdist>=3.3.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "isort>=5.12.0",
+    "pre-commit>=3.3.0",
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+    "coverage>=7.2.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "sphinx-copybutton>=0.5.0",
+    "sphinx-design>=0.5.0",
+    "myst-parser>=2.0.0",
+    "nbsphinx>=0.9.0",
+    "sphinx-gallery>=0.14.0",
+    "numpydoc>=1.5.0",
+    "jupyter>=1.0.0",
+    "ipykernel>=6.0.0",
+]
+interactive = [
+    "jupyter>=1.0.0",
+    "jupyterlab>=4.0.0",
+    "notebook>=7.0.0",
+    "ipywidgets>=8.0.0",
+    "voila>=0.5.0",
+]
+all = [
+    "pybuildingcluster[ml,viz,dev,docs,interactive]",
+]
+
+[project.urls]
+Homepage = "https://github.com/EURAC-EEBgroup/pybuildingcluster"
+Documentation = "https://pybuildingcluster.readthedocs.io/"
+Repository = "https://github.com/EURAC-EEBgroup/pybuildingcluster.git"
+"Bug Tracker" = "https://github.com/EURAC-EEBgroup/pybuildingcluster/issues"
+Discussions = "https://github.com/EURAC-EEBgroup/pybuildingcluster/discussions"
+Changelog = "https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/CHANGELOG.md"
+"Source Code" = "https://github.com/EURAC-EEBgroup/pybuildingcluster"
+Download = "https://pypi.org/project/pybuildingcluster/"
+"Research Group" = "https://www.eurac.edu/en/institutes-centers/institute-for-renewable-energy"
+"MODERATE Project" = "https://moderate-project.eu/"
+
+[project.scripts]
+pybuildingcluster = "pybuildingcluster.cli:main"
+pybc = "pybuildingcluster.cli:main"
+building-cluster = "pybuildingcluster.cli:main"
+
+[project.gui-scripts]
+pybuildingcluster-gui = "pybuildingcluster.gui:main"
+
+[tool.hatch.version]
+path = "src/pybuildingcluster/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pybuildingcluster"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests", 
+    "/docs",
+    "/examples",
+    "/data",
+    "README.rst",
+    "CHANGELOG.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+exclude = [
+    "/.github",
+    "/docs/_build",
+    "**/__pycache__",
+    "**/*.pyc",
+    "**/.*",
+]
+
+# Tool configurations
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | docs/_build
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["pybuildingcluster"]
+known_third_party = [
+    "pandas",
+    "numpy", 
+    "sklearn",
+    "matplotlib",
+    "seaborn",
+    "scipy",
+    "xgboost",
+    "lightgbm",
+    "optuna",
+    "plotly",
+    "bokeh",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = [
+    "sklearn.*",
+    "xgboost.*",
+    "lightgbm.*",
+    "optuna.*",
+    "plotly.*",
+    "bokeh.*",
+    "seaborn.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--cov=pybuildingcluster",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "slow: Slow running tests",
+    "network: Tests requiring network access",
+    "gpu: Tests requiring GPU",
+]
+
+[tool.coverage.run]
+source = ["src/pybuildingcluster"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__init__.py",
+    "*/cli.py",
+    "*/gui.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = [
+    "E203",  # whitespace before ':'
+    "E501",  # line too long (handled by black)
+    "W503",  # line break before binary operator
+]
+per-file-ignores = [
+    "__init__.py:F401",  # imported but unused
+    "tests/*:F401,F811",  # test imports
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".tox",
+    ".eggs",
+    "*.egg",
+    "docs/_build",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs"]
+skips = ["B101", "B601"]  # Skip assert_used and shell_injection_process
+
+[tool.bandit.assert_used]
+skips = ["*_test.py", "*/test_*.py"]
+
+# Performance and optimization settings
+[tool.setuptools_scm]
+write_to = "src/pybuildingcluster/_version.py"
+
+[tool.check-manifest]
+ignore = [
+    "docs/_build/**",
+    "docs/source/auto_examples/**",
+    "examples/outputs/**",
+    ".readthedocs.yaml",
+    ".pre-commit-config.yaml",
+    "tox.ini",
+]
+
+# Development and CI/CD configurations
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py38,py39,py310,py311,py312,flake8,mypy,docs
+isolated_build = true
+
+[testenv]
+deps = 
+    pytest
+    pytest-cov
+    pytest-benchmark
+extras = 
+    dev
+    ml
+commands = 
+    pytest {posargs}
+
+[testenv:flake8]
+deps = flake8
+commands = flake8 src tests
+
+[testenv:mypy]
+deps = 
+    mypy
+    types-PyYAML
+commands = mypy src
+
+[testenv:docs]
+deps = 
+    sphinx
+    sphinx-rtd-theme
+    sphinx-copybutton
+commands = 
+    sphinx-build -b html docs/source docs/_build/html
+
+[testenv:coverage]
+deps = 
+    pytest
+    pytest-cov
+    coverage
+commands = 
+    pytest --cov=pybuildingcluster --cov-report=html
+    coverage report
+
+[testenv:build]
+deps = 
+    build
+    twine
+commands = 
+    python -m build
+    twine check dist/*
+
+[testenv:publish-test]
+deps = 
+    build
+    twine
+commands = 
+    python -m build
+    twine upload --repository testpypi dist/*
+
+[testenv:publish]
+deps = 
+    build
+    twine
+commands = 
+    python -m build
+    twine upload dist/*
+"""
+
+# Additional metadata for package discovery
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pybuildingcluster = [
+    "data/*.csv",
+    "data/*.json", 
+    "templates/*.html",
+    "templates/*.jinja2",
+    "static/css/*.css",
+    "static/js/*.js",
+    "static/images/*",
+    "config/*.yaml",
+    "config/*.toml",
+]
+
+# Documentation building
+[tool.sphinx]
+source-dir = "docs/source"
+build-dir = "docs/_build"
+
+# Jupyter notebook configuration
+[tool.nbconvert]
+execute = true
+kernel_name = "python3"
+timeout = 300
+
+# Performance benchmarking
+[tool.asv]
+repo = "https://github.com/EURAC-EEBgroup/pybuildingcluster.git"
+project = "pybuildingcluster"
+branches = ["main", "develop"]
+environment_type = "virtualenv"
+show_commit_url = "https://github.com/EURAC-EEBgroup/pybuildingcluster/commit/"
+
+# Security scanning
+[tool.safety]
+ignore = []  # Add CVE IDs to ignore if needed
+
+# Code quality and complexity
+[tool.radon]
+exclude = "tests/*,docs/*,examples/*"
+ignore = "F,E"
+
+[tool.xenon]
+max_absolute = 10
+max_modules = 5
+max_average = 5
+
+# Git hooks and pre-commit
+[tool.pre-commit]
+default_stages = ["commit"]
+
+# Dependency management
+[tool.pip-tools]
+generate-hashes = true
+upgrade = true
+resolver = "backtracking"
+
+# Package publishing
+[tool.twine]
+repository = "pypi"
+username = "__token__"
+# password should be set via environment variable TWINE_PASSWORD
+
+# Version bumping
+[tool.bumpversion]
+current_version = "1.3.0"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "{current_version}"
+replace = "{new_version}"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "src/pybuildingcluster/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "docs/source/conf.py"
+search = "version = \"{current_version}\""
+replace = "version = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "docs/source/conf.py"
+search = "release = \"{current_version}\""
+replace = "release = \"{new_version}\""
