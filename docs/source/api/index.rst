@@ -101,53 +101,12 @@ SensitivityAnalyzer
       ~SensitivityAnalyzer.compare_scenarios
       ~SensitivityAnalyzer.create_scenario_report_html
 
-Function Reference
-==================
 
-Utility Functions
------------------
-
-.. currentmodule:: pybuildingcluster.utils
-
-.. autosummary::
-   :toctree: generated/
-
-   validate_data
-   optimize_memory_usage
-   export_results
-
-Data Loading Functions
-----------------------
-
-.. currentmodule:: pybuildingcluster.data
-
-.. autosummary::
-   :toctree: generated/
-
-   load_sample_data
-   validate_building_data
-   preprocess_energy_data
-
-Visualization Functions
------------------------
-
-.. currentmodule:: pybuildingcluster.visualization
-
-.. autosummary::
-   :toctree: generated/
-
-   plot_clusters
-   plot_model_performance
-   plot_sensitivity_results
-   create_interactive_plots
 
 Constants and Enums
 ===================
 
 .. currentmodule:: pybuildingcluster.constants
-
-.. autodata:: DEFAULT_CLUSTERING_FEATURES
-   :annotation: = ['QHnd', 'degree_days']
 
 .. autodata:: DEFAULT_REGRESSION_FEATURES
    :annotation: = List of default regression features
@@ -156,7 +115,7 @@ Constants and Enums
    :annotation: = ['random_forest', 'xgboost', 'lightgbm', 'svr']
 
 .. autodata:: CLUSTERING_METHODS
-   :annotation: = ['elbow', 'silhouette', 'calinski_harabasz']
+   :annotation: = ['elbow', 'silhouette']
 
 Exceptions
 ==========
