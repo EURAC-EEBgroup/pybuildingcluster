@@ -13,6 +13,7 @@ cluster_1_limits = {
 }
 
 import numpy as np
+import pandas as pd
 
 # Extract limits for better readability
 opaque_min = cluster_1_limits['average_opaque_surface_transmittance']['min']
