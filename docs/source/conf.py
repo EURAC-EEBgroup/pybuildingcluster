@@ -298,7 +298,7 @@ copybutton_only_copy_prompt_lines = True
 
 import os
 nbsphinx_prolog = ""  # Empty to avoid template errors
-
+nbsphinx_allow_errors = True # Allow errors in notebooks
 # Fix for duplicate autodoc
 autodoc_default_options = {
     'members': True,
