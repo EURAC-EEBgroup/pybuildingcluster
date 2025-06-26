@@ -10,17 +10,10 @@ pyBuildingCluster
     :target: https://pypi.python.org/pypi/pybuildingcluster
     :alt: Python versions
 
-.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/workflows/CI/badge.svg
-    :target: https://github.com/EURAC-EEBgroup/pybuildingcluster/actions
-    :alt: CI Status
-
 .. image:: https://readthedocs.org/projects/pybuildingcluster/badge/?version=latest
     :target: https://pybuildingcluster.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://codecov.io/gh/EURAC-EEBgroup/pybuildingcluster/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/EURAC-EEBgroup/pybuildingcluster
-    :alt: Coverage Status
 
 .. image:: https://img.shields.io/github/license/EURAC-EEBgroup/pybuildingcluster.svg
     :target: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/LICENSE

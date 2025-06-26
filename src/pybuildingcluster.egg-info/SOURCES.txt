@@ -6,6 +6,8 @@ README.md
 setup.py
 src/pybuildingcluster/__init__.py
 src/pybuildingcluster/cli.py
+src/pybuildingcluster/exceptions.py
+src/pybuildingcluster/types.py
 src/pybuildingcluster.egg-info/PKG-INFO
 src/pybuildingcluster.egg-info/SOURCES.txt
 src/pybuildingcluster.egg-info/dependency_links.txt
