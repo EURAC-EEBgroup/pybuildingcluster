@@ -1,0 +1,77 @@
+/* Custom CSS for pyBuildingCluster documentation */
+
+/* Brand colors */
+:root {
+    --primary-color: #2980B9;
+    --secondary-color: #3498DB;
+    --accent-color: #E74C3C;
+    --success-color: #27AE60;
+    --warning-color: #F39C12;
+    --light-bg: #F8F9FA;
+    --border-color: #E1E8ED;
+}
+
+/* Logo and branding */
+.wy-side-nav-search {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.wy-side-nav-search > a img.logo {
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Improve readability */
+.rst-content {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.rst-content h1 {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--secondary-color);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+.rst-content h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.rst-content h3 {
+    color: #34495E;
+}
+
+/* Code blocks */
+.rst-content pre {
+    background: #F8F9FA;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    font-size: 14px;
+    overflow-x: auto;
+}
+
+.rst-content code {
+    background: #F1F2F6;
+    color: #476582;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 90%;
+}
+
+/* Admonitions */
+.rst-content .admonition {
+    border-radius: 6px;
+    border-left: 4px solid;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.rst-content .admonition.note {
+    border-left-color: var(--secondary-color);
+    background: #E8F4FD;
+}

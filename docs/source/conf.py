@@ -261,17 +261,20 @@ nbsphinx_prolog = r"""
 # -- Options for sphinx-gallery ----------------------------------------------
 
 sphinx_gallery_conf = {
-    'examples_dirs': '../../examples',   # path to your example scripts
-    'gallery_dirs': 'auto_examples',     # path to where to save gallery generated output
-    'filename_pattern': '/example_',
     'ignore_pattern': r'__init__\.py',
     'download_all_examples': False,
-    'show_memory': True,
+    'plot_gallery': 'True',              # generate plots for examples
     'remove_config_comments': True,
     'expected_failing_examples': [],
+    'matplotlib_animations': True,
     'image_scrapers': ('matplotlib',),
     'reset_modules': ('matplotlib', 'seaborn'),
-    'matplotlib_animations': True,
+    'first_notebook_cell': (
+        "# This cell is added by sphinx-gallery\n"
+        "# It can be customized to fit your package\n"
+        "import numpy as np\n"
+        "import matplotlib.pyplot as plt"
+    ),
 }
 
 # -- Custom functions --------------------------------------------------------
