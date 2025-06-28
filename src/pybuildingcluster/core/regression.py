@@ -8,12 +8,13 @@ prediction using Random Forest, XGBoost, and LightGBM with automatic model selec
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Ridge, Lasso, ElasticNet,LassoCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.model_selection import (
-    train_test_split, cross_val_score, GridSearchCV, RandomizedSearchCV
+    train_test_split, cross_val_score,
 )
 from sklearn.metrics import (
     mean_squared_error, r2_score, mean_absolute_error, 
-    mean_absolute_percentage_error
 )
 from sklearn.preprocessing import StandardScaler
 
@@ -41,18 +42,32 @@ import seaborn as sns
 from pathlib import Path
 import time
 
+import pandas as pd
+import numpy as np
+from typing import List, Dict, Tuple, Optional, Any, Union
+from sklearn.model_selection import train_test_split, cross_val_score, validation_curve
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, f_regression, RFE, RFECV
+from sklearn.inspection import permutation_importance
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+import warnings
+warnings.filterwarnings('ignore')
 
-class RegressionModelBuilder:
+class ModelBuilder:
     """
-    A comprehensive regression model builder for building energy performance prediction.
+    Enhanced regression model builder with aggressive overfitting prevention.
     
-    This class provides methods for building and evaluating regression models using
-    multiple algorithms with automatic hyperparameter tuning and model selection.
+    This class implements multiple strategies to prevent overfitting:
+    1. Conservative feature selection
+    2. Strict validation criteria
+    3. Learning curve analysis
+    4. Regularization emphasis
+    5. Cross-validation based model selection
     """
     
-    def __init__(self, random_state: int = 42, n_jobs: int = -1, problem_type='classification'):
+    def __init__(self, random_state: int = 42, n_jobs: int = -1, problem_type='regression'):
         """
-        Initialize the regression model builder.
+        Initialize the anti-overfitting model builder.
         
         Parameters
         ----------
@@ -61,7 +76,7 @@ class RegressionModelBuilder:
         n_jobs : int, optional
             Number of parallel jobs, by default -1
         problem_type : str, optional
-            Type of problem ('classification' or 'regression'), by default 'classification'
+            Type of problem ('regression'), by default 'regression'
         """
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -71,17 +86,22 @@ class RegressionModelBuilder:
         self.model_performance = {}
         self.best_models = {}
         self.problem_type = problem_type
+        self.selected_features = {}  # Store selected features per cluster
         
-    def prepare_data(
+    def prepare_data_with_feature_selection(
         self, 
         data: pd.DataFrame, 
         target_column: str, 
         feature_columns: List[str],
-        test_size: float = 0.2,
-        scale_features: bool = False
+        test_size: float = 0.3,  # Larger test set for better validation
+        scale_features: bool = True,
+        max_features_ratio: float = 0.3,  # Maximum 30% of available features
+        min_features: int = 3,
+        max_features_absolute: int = 15,  # Hard limit on features
+        user_features: Optional[List[str]] = None  # User-specified features
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[str]]:
         """
-        Prepare data for modeling.
+        Prepare data with conservative feature selection to prevent overfitting.
         
         Parameters
         ----------
@@ -92,14 +112,22 @@ class RegressionModelBuilder:
         feature_columns : List[str]
             List of feature column names
         test_size : float, optional
-            Proportion of data for testing, by default 0.2
+            Proportion of data for testing, by default 0.3
         scale_features : bool, optional
             Whether to scale features, by default True
+        max_features_ratio : float, optional
+            Maximum ratio of features to samples, by default 0.3
+        min_features : int, optional
+            Minimum number of features to select, by default 3
+        max_features_absolute : int, optional
+            Absolute maximum number of features, by default 15
+        user_features : Optional[List[str]], optional
+            User-specified features to include in selection, by default None
             
         Returns
         -------
         Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[str]]
-            X_train, X_test, y_train, y_test, feature_names
+            X_train, X_test, y_train, y_test, selected_feature_names
         """
         # Check if target column exists
         if target_column not in data.columns:
@@ -117,7 +145,7 @@ class RegressionModelBuilder:
         # Handle missing values
         if X.isnull().any().any():
             print("Warning: Missing values in features. Filling with median values.")
-            X = X.fillna(X.median())
+            X = X.fillna(X.median(numeric_only=True))
         
         if y.isnull().any():
             print("Warning: Missing values in target. Dropping corresponding rows.")
@@ -125,331 +153,353 @@ class RegressionModelBuilder:
             X = X[valid_mask]
             y = y[valid_mask]
         
-        # Identify categorical and numerical columns
+        # Calculate maximum features based on sample size and constraints
+        n_samples = len(X)
+        max_features_by_ratio = max(min_features, int(n_samples * max_features_ratio))
+        max_features = min(max_features_by_ratio, max_features_absolute, len(feature_columns))
         
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
+        print(f"Feature Selection Strategy:")
+        print(f"  Total available features: {len(feature_columns)}")
+        print(f"  Sample size: {n_samples}")
+        print(f"  Max features by ratio (30%): {max_features_by_ratio}")
+        print(f"  Max features (absolute limit): {max_features_absolute}")
+        print(f"  Selected max features: {max_features}")
+        
+        # Split data first to avoid data leakage in feature selection
+        X_train_full, X_test_full, y_train, y_test = train_test_split(
             X, y, test_size=test_size, random_state=self.random_state
         )
         
+        # Handle user features
+        if user_features:
+            # Validate user features exist in dataset
+            valid_user_features = [f for f in user_features if f in X_train_full.columns]
+            if valid_user_features:
+                print(f"  User-specified features provided: {len(valid_user_features)} valid features")
+                selected_features = self._select_best_features(
+                    X_train_full, y_train, max_features, min_features
+                ) + valid_user_features
+                selected_features = list(set(selected_features))
+            else:
+                print("  Warning: No valid user features found, using automated selection")
+                selected_features = self._select_best_features(
+                    X_train_full, y_train, max_features, min_features
+                )
+        else:
+            # Perform automated feature selection
+            selected_features = self._select_best_features(
+                X_train_full, y_train, max_features, min_features
+            )
+        
+        print(f"  Selected {len(selected_features)} features: {selected_features[:5]}{'...' if len(selected_features) > 5 else ''}")
+        
+        # Apply feature selection
+        X_train = X_train_full[selected_features]
+        X_test = X_test_full[selected_features]
+        
         # Scale features if requested
         if scale_features:
-            if self.problem_type == "classification":
-                categorical_cols = X.select_dtypes(include=['object', 'category']).columns.tolist()
-                numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
-                preprocessor = ColumnTransformer(
-                    transformers=[
-                        ('num', StandardScaler(), numerical_cols),
-                        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols)
-                    ]
-                )
-                X_train_scaled = preprocessor.fit_transform(X_train)
-                X_test_scaled = preprocessor.transform(X_test)
-            else: 
-                scaler = StandardScaler()
-                X_train_scaled = scaler.fit_transform(X_train)
-                X_test_scaled = scaler.transform(X_test)
-                
-                # Store scaler for later use
-                self.scaler = scaler
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
             
-            return X_train_scaled, X_test_scaled, y_train.values, y_test.values, feature_columns
+            # Store scaler for later use
+            self.scaler = scaler
+            
+            return X_train_scaled, X_test_scaled, y_train.values, y_test.values, selected_features
         else:
             self.scaler = None
-            return X_train.values, X_test.values, y_train.values, y_test.values, feature_columns
+            return X_train.values, X_test.values, y_train.values, y_test.values, selected_features
     
-    def get_model_configurations(self) -> Dict[str, Dict]:
+    def _select_best_features(
+        self, 
+        X_train: pd.DataFrame, 
+        y_train: pd.Series, 
+        max_features: int, 
+        min_features: int
+    ) -> List[str]:
         """
-        Get default model configurations for hyperparameter tuning.
-        Supports both regression and classification problems.
+        Select the best features using multiple methods and conservative criteria.
+        
+        Parameters
+        ----------
+        X_train : pd.DataFrame
+            Training features
+        y_train : pd.Series
+            Training target
+        max_features : int
+            Maximum number of features to select
+        min_features : int
+            Minimum number of features to select
+            
+        Returns
+        -------
+        List[str]
+            List of selected feature names
+        """
+        
+        print("  Performing conservative feature selection...")
+        
+        # Method 1: Statistical significance (Univariate)
+        selector_stats = SelectKBest(score_func=f_regression, k=max_features)
+        selector_stats.fit(X_train, y_train)
+        features_stats = X_train.columns[selector_stats.get_support()].tolist()
+        scores_stats = selector_stats.scores_
+        
+        # Method 2: Random Forest Feature Importance
+        rf = RandomForestRegressor(
+            n_estimators=100, 
+            max_depth=10,  # Limit depth to prevent overfitting
+            min_samples_split=5,
+            min_samples_leaf=3,
+            random_state=self.random_state,
+            n_jobs=self.n_jobs
+        )
+        rf.fit(X_train, y_train)
+        importance_rf = rf.feature_importances_
+        
+        # Get top features by importance
+        feature_importance_df = pd.DataFrame({
+            'feature': X_train.columns,
+            'importance': importance_rf
+        }).sort_values('importance', ascending=False)
+        features_rf = feature_importance_df.head(max_features)['feature'].tolist()
+        
+        # Method 3: Lasso for automatic feature selection
+        try:
+            lasso_cv = LassoCV(
+                cv=5, 
+                random_state=self.random_state,
+                max_iter=2000,
+                n_jobs=self.n_jobs
+            )
+            lasso_cv.fit(X_train, y_train)
+            lasso_coef = np.abs(lasso_cv.coef_)
+            
+            # Select features with non-zero coefficients
+            features_lasso = X_train.columns[lasso_coef > 0].tolist()
+            
+            # If too many features, take top ones by coefficient magnitude
+            if len(features_lasso) > max_features:
+                lasso_importance = pd.DataFrame({
+                    'feature': X_train.columns,
+                    'coef': lasso_coef
+                }).sort_values('coef', ascending=False)
+                features_lasso = lasso_importance.head(max_features)['feature'].tolist()
+        
+        except Exception as e:
+            print(f"    Warning: Lasso selection failed: {e}")
+            features_lasso = []
+        
+        # Method 4: Recursive Feature Elimination with Cross-Validation
+        try:
+            # Use a simple model for RFE to avoid overfitting
+            
+            estimator = Ridge(random_state=self.random_state)
+            
+            rfecv = RFECV(
+                estimator=estimator,
+                step=1,
+                cv=5,
+                scoring='r2',
+                min_features_to_select=min_features,
+                n_jobs=self.n_jobs
+            )
+            rfecv.fit(X_train, y_train)
+            features_rfe = X_train.columns[rfecv.support_].tolist()
+            
+            # Limit to max_features
+            if len(features_rfe) > max_features:
+                features_rfe = features_rfe[:max_features]
+                
+        except Exception as e:
+            print(f"    Warning: RFE selection failed: {e}")
+            features_rfe = []
+        
+        # Combine results from all methods
+        all_selected_features = set()
+        method_counts = {}
+        
+        for feature_list, method_name in [
+            (features_stats, 'stats'),
+            (features_rf, 'rf'),
+            (features_lasso, 'lasso'),
+            (features_rfe, 'rfe')
+        ]:
+            if feature_list:  # Only if method succeeded
+                all_selected_features.update(feature_list)
+                for feature in feature_list:
+                    method_counts[feature] = method_counts.get(feature, 0) + 1
+        
+        # Select features that appear in multiple methods (consensus approach)
+        consensus_features = [
+            feature for feature, count in method_counts.items() 
+            if count >= 2  # Feature must be selected by at least 2 methods
+        ]
+        
+        # If not enough consensus features, add top features from individual methods
+        if len(consensus_features) < min_features:
+            # Add top RF features
+            for feature in features_rf:
+                if feature not in consensus_features:
+                    consensus_features.append(feature)
+                    if len(consensus_features) >= min_features:
+                        break
+        
+        # Limit to max_features
+        if len(consensus_features) > max_features:
+            # Prioritize by method count, then by RF importance
+            feature_priority = []
+            for feature in consensus_features:
+                count = method_counts.get(feature, 0)
+                rf_importance = importance_rf[X_train.columns.get_loc(feature)]
+                feature_priority.append((feature, count, rf_importance))
+            
+            # Sort by count (descending), then by importance (descending)
+            feature_priority.sort(key=lambda x: (x[1], x[2]), reverse=True)
+            consensus_features = [f[0] for f in feature_priority[:max_features]]
+        
+        print(f"    Feature selection summary:")
+        print(f"    - Statistical: {len(features_stats)} features")
+        print(f"    - Random Forest: {len(features_rf)} features")
+        print(f"    - Lasso: {len(features_lasso)} features")
+        print(f"    - RFE: {len(features_rfe)} features")
+        print(f"    - Consensus (≥2 methods): {len(consensus_features)} features")
+        
+        return consensus_features
+    
+    def get_conservative_model_configurations(self) -> Dict[str, Dict]:
+        """
+        Get conservative model configurations designed to prevent overfitting.
         
         Returns
         -------
         Dict[str, Dict]
-            Dictionary of model configurations
+            Dictionary of conservative model configurations
         """
-        configs = {}
-    
-        # Determine if it's classification or regression
-        is_classification = hasattr(self, 'problem_type') and self.problem_type == "classification"
         
-        if is_classification:
-            # Classification models
-            from sklearn.ensemble import RandomForestClassifier
-            
-            configs['random_forest'] = {
-                'model': RandomForestClassifier(
-                    random_state=self.random_state,
-                    n_jobs=self.n_jobs if hasattr(self, 'n_jobs') else -1,
-                    class_weight='balanced'  # Handle imbalanced classes
-                ),
-                'params': {
-                    'n_estimators': [50, 100, 200],
-                    'max_depth': [None, 10, 20, 30],
-                    'min_samples_split': [2, 5, 10],
-                    'min_samples_leaf': [1, 2, 4],
-                    'max_features': ['auto', 'sqrt', 'log2'],
-                    'criterion': ['gini', 'entropy']
-                },
-                'param_distributions': {
-                    'n_estimators': [50, 100, 200, 300, 500],
-                    'max_depth': [5, 10, 15, 20, 25, 30, None],
-                    'min_samples_split': [2, 5, 10, 15],
-                    'min_samples_leaf': [1, 2, 4, 6],
-                    'max_features': ['auto', 'sqrt', 'log2', 0.5, 0.7, 0.9],
-                    'criterion': ['gini', 'entropy']
-                }
-            }
-            
-            # Add XGBoost Classifier if available
-            if HAS_XGBOOST:
-                configs['xgboost'] = {
-                    'model': xgb.XGBClassifier(
-                        random_state=self.random_state,
-                        n_jobs=self.n_jobs if hasattr(self, 'n_jobs') else -1,
-                        verbosity=0,
-                        eval_metric='logloss'
-                    ),
-                    'params': {
-                        'n_estimators': [100, 200, 300],
-                        'max_depth': [3, 6, 9],
-                        'learning_rate': [0.01, 0.1, 0.2],
-                        'subsample': [0.8, 0.9, 1.0],
-                        'colsample_bytree': [0.8, 0.9, 1.0]
-                    },
-                    'param_distributions': {
-                        'n_estimators': [50, 100, 200, 300, 500],
-                        'max_depth': [3, 4, 5, 6, 7, 8, 9],
-                        'learning_rate': [0.01, 0.05, 0.1, 0.15, 0.2],
-                        'subsample': [0.7, 0.8, 0.9, 1.0],
-                        'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
-                        'reg_alpha': [0, 0.1, 0.5, 1.0],
-                        'reg_lambda': [0, 0.1, 0.5, 1.0]
-                    }
-                }
-            
-            # Add LightGBM Classifier if available
-            if HAS_LIGHTGBM:
-                configs['lightgbm'] = {
-                    'model': lgb.LGBMClassifier(
-                        random_state=self.random_state,
-                        n_jobs=self.n_jobs if hasattr(self, 'n_jobs') else -1,
-                        verbosity=-1,
-                        class_weight='balanced'
-                    ),
-                    'params': {
-                        'n_estimators': [100, 200, 300],
-                        'max_depth': [3, 6, 9],
-                        'learning_rate': [0.01, 0.1, 0.2],
-                        'num_leaves': [31, 50, 70],
-                        'subsample': [0.8, 0.9, 1.0]
-                    },
-                    'param_distributions': {
-                        'n_estimators': [50, 100, 200, 300, 500],
-                        'max_depth': [3, 4, 5, 6, 7, 8, 9],
-                        'learning_rate': [0.01, 0.05, 0.1, 0.15, 0.2],
-                        'num_leaves': [15, 31, 50, 70, 100],
-                        'subsample': [0.7, 0.8, 0.9, 1.0],
-                        'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
-                        'reg_alpha': [0, 0.1, 0.5, 1.0],
-                        'reg_lambda': [0, 0.1, 0.5, 1.0]
-                    }
-                }
-            
-            # Add Support Vector Machine for classification
-            from sklearn.svm import SVC
-            configs['svm'] = {
-                'model': SVC(
-                    random_state=self.random_state,
-                    probability=True,  # Enable probability estimates
-                    class_weight='balanced'
-                ),
-                'params': {
-                    'C': [0.1, 1, 10, 100],
-                    'kernel': ['rbf', 'linear', 'poly'],
-                    'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1]
-                },
-                'param_distributions': {
-                    'C': [0.01, 0.1, 1, 10, 50, 100, 200],
-                    'kernel': ['rbf', 'linear', 'poly'],
-                    'gamma': ['scale', 'auto', 0.0001, 0.001, 0.01, 0.1, 1, 10]
-                }
-            }
-            
-            # Add Logistic Regression for classification
-            from sklearn.linear_model import LogisticRegression
-            configs['logistic_regression'] = {
-                'model': LogisticRegression(
-                    random_state=self.random_state,
-                    max_iter=1000,
-                    class_weight='balanced'
-                ),
-                'params': {
-                    'C': [0.1, 1, 10, 100],
-                    'penalty': ['l1', 'l2', 'elasticnet'],
-                    'solver': ['liblinear', 'saga']
-                },
-                'param_distributions': {
-                    'C': [0.01, 0.1, 1, 10, 50, 100],
-                    'penalty': ['l1', 'l2', 'elasticnet'],
-                    'solver': ['liblinear', 'saga'],
-                    'l1_ratio': [0.1, 0.3, 0.5, 0.7, 0.9]  # Only used with elasticnet
-                }
-            }
-            
-        else:
-            # Regression models (your existing code)
-            from sklearn.ensemble import RandomForestRegressor
-            
-            configs['random_forest'] = {
+        
+        configs = {
+            # Random Forest with conservative parameters
+            'random_forest_conservative': {
                 'model': RandomForestRegressor(
+                    n_estimators=100,  # Moderate number of trees
+                    max_depth=8,       # Limited depth
+                    min_samples_split=10,  # Require more samples to split
+                    min_samples_leaf=5,    # Require more samples in leaves
+                    max_features=0.7,      # Use subset of features
                     random_state=self.random_state,
-                    n_jobs=self.n_jobs if hasattr(self, 'n_jobs') else -1
+                    n_jobs=self.n_jobs
                 ),
                 'params': {
-                    'n_estimators': [50, 100, 200],
-                    'max_depth': [None, 10, 20, 30],
-                    'min_samples_split': [2, 5, 10],
-                    'min_samples_leaf': [1, 2, 4],
-                    'max_features': ['auto', 'sqrt', 'log2']
-                },
-                'param_distributions': {
-                    'n_estimators': [50, 100, 200, 300, 500],
-                    'max_depth': [5, 10, 15, 20, 25, 30, None],
-                    'min_samples_split': [2, 5, 10, 15],
-                    'min_samples_leaf': [1, 2, 4, 6],
-                    'max_features': ['auto', 'sqrt', 'log2', 0.5, 0.7, 0.9]
+                    'n_estimators': [50, 100, 150],
+                    'max_depth': [5, 8, 10],
+                    'min_samples_split': [5, 10, 15],
+                    'min_samples_leaf': [3, 5, 8],
+                    'max_features': [0.5, 0.7, 0.9]
                 }
-            }
+            },
             
-            # Add XGBoost Regressor if available
-            if HAS_XGBOOST:
-                configs['xgboost'] = {
-                    'model': xgb.XGBRegressor(
-                        random_state=self.random_state,
-                        n_jobs=self.n_jobs if hasattr(self, 'n_jobs') else -1,
-                        verbosity=0
-                    ),
-                    'params': {
-                        'n_estimators': [100, 200, 300],
-                        'max_depth': [3, 6, 9],
-                        'learning_rate': [0.01, 0.1, 0.2],
-                        'subsample': [0.8, 0.9, 1.0],
-                        'colsample_bytree': [0.8, 0.9, 1.0]
-                    },
-                    'param_distributions': {
-                        'n_estimators': [50, 100, 200, 300, 500],
-                        'max_depth': [3, 4, 5, 6, 7, 8, 9],
-                        'learning_rate': [0.01, 0.05, 0.1, 0.15, 0.2],
-                        'subsample': [0.7, 0.8, 0.9, 1.0],
-                        'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
-                        'reg_alpha': [0, 0.1, 0.5, 1.0],
-                        'reg_lambda': [0, 0.1, 0.5, 1.0]
-                    }
-                }
-            
-            # Add LightGBM Regressor if available
-            if HAS_LIGHTGBM:
-                configs['lightgbm'] = {
-                    'model': lgb.LGBMRegressor(
-                        random_state=self.random_state,
-                        n_jobs=self.n_jobs if hasattr(self, 'n_jobs') else -1,
-                        verbosity=-1
-                    ),
-                    'params': {
-                        'n_estimators': [100, 200, 300],
-                        'max_depth': [3, 6, 9],
-                        'learning_rate': [0.01, 0.1, 0.2],
-                        'num_leaves': [31, 50, 70],
-                        'subsample': [0.8, 0.9, 1.0]
-                    },
-                    'param_distributions': {
-                        'n_estimators': [50, 100, 200, 300, 500],
-                        'max_depth': [3, 4, 5, 6, 7, 8, 9],
-                        'learning_rate': [0.01, 0.05, 0.1, 0.15, 0.2],
-                        'num_leaves': [15, 31, 50, 70, 100],
-                        'subsample': [0.7, 0.8, 0.9, 1.0],
-                        'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
-                        'reg_alpha': [0, 0.1, 0.5, 1.0],
-                        'reg_lambda': [0, 0.1, 0.5, 1.0]
-                    }
-                }
-            
-            # Add Support Vector Regression
-            from sklearn.svm import SVR
-            configs['svr'] = {
-                'model': SVR(),
-                'params': {
-                    'C': [0.1, 1, 10, 100],
-                    'kernel': ['rbf', 'linear', 'poly'],
-                    'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
-                    'epsilon': [0.01, 0.1, 0.2, 0.5]
-                },
-                'param_distributions': {
-                    'C': [0.01, 0.1, 1, 10, 50, 100, 200],
-                    'kernel': ['rbf', 'linear', 'poly'],
-                    'gamma': ['scale', 'auto', 0.0001, 0.001, 0.01, 0.1, 1, 10],
-                    'epsilon': [0.001, 0.01, 0.1, 0.2, 0.5, 1.0]
-                }
-            }
-            
-            # Add Linear Regression variants
-            from sklearn.linear_model import Ridge, Lasso, ElasticNet
-            configs['ridge'] = {
+            # Ridge Regression (L2 regularization)
+            'ridge_strong': {
                 'model': Ridge(random_state=self.random_state),
                 'params': {
-                    'alpha': [0.1, 1, 10, 100],
-                    'solver': ['auto', 'saga', 'lsqr']
-                },
-                'param_distributions': {
-                    'alpha': [0.01, 0.1, 1, 10, 50, 100, 200],
-                    'solver': ['auto', 'saga', 'lsqr', 'sparse_cg']
+                    'alpha': [1.0, 10.0, 50.0, 100.0, 500.0]  # Strong regularization
                 }
-            }
+            },
             
-            configs['lasso'] = {
+            # Lasso Regression (L1 regularization for feature selection)
+            'lasso_strong': {
                 'model': Lasso(random_state=self.random_state, max_iter=2000),
                 'params': {
-                    'alpha': [0.1, 1, 10, 100]
-                },
-                'param_distributions': {
-                    'alpha': [0.001, 0.01, 0.1, 1, 10, 50, 100]
+                    'alpha': [0.1, 0.5, 1.0, 5.0, 10.0]  # Strong regularization
                 }
-            }
+            },
             
-            configs['elastic_net'] = {
+            # Elastic Net (combined L1 and L2)
+            'elastic_net_strong': {
                 'model': ElasticNet(random_state=self.random_state, max_iter=2000),
                 'params': {
-                    'alpha': [0.1, 1, 10, 100],
-                    'l1_ratio': [0.1, 0.5, 0.7, 0.9]
-                },
-                'param_distributions': {
-                    'alpha': [0.001, 0.01, 0.1, 1, 10, 50, 100],
-                    'l1_ratio': [0.1, 0.3, 0.5, 0.7, 0.9, 0.95, 0.99]
+                    'alpha': [0.1, 0.5, 1.0, 5.0, 10.0],
+                    'l1_ratio': [0.3, 0.5, 0.7, 0.9]
                 }
             }
+        }
+        
+        # Add XGBoost if available
+        try:
+            import xgboost as xgb
+            configs['xgboost_conservative'] = {
+                'model': xgb.XGBRegressor(
+                    n_estimators=100,
+                    max_depth=4,      # Shallow trees
+                    learning_rate=0.05,  # Slow learning
+                    subsample=0.8,
+                    colsample_bytree=0.8,
+                    reg_alpha=1.0,    # L1 regularization
+                    reg_lambda=1.0,   # L2 regularization
+                    random_state=self.random_state,
+                    n_jobs=self.n_jobs,
+                    verbosity=0
+                ),
+                'params': {
+                    'n_estimators': [50, 100, 150],
+                    'max_depth': [3, 4, 5],
+                    'learning_rate': [0.01, 0.05, 0.1],
+                    'reg_alpha': [0.5, 1.0, 2.0],
+                    'reg_lambda': [0.5, 1.0, 2.0]
+                }
+            }
+        except ImportError:
+            pass
+        
+        # Add LightGBM if available
+        try:
+            import lightgbm as lgb
+            configs['lightgbm_conservative'] = {
+                'model': lgb.LGBMRegressor(
+                    n_estimators=100,
+                    max_depth=4,
+                    learning_rate=0.05,
+                    num_leaves=15,    # Few leaves
+                    subsample=0.8,
+                    colsample_bytree=0.8,
+                    reg_alpha=1.0,
+                    reg_lambda=1.0,
+                    random_state=self.random_state,
+                    n_jobs=self.n_jobs,
+                    verbosity=-1
+                ),
+                'params': {
+                    'n_estimators': [50, 100, 150],
+                    'max_depth': [3, 4, 5],
+                    'learning_rate': [0.01, 0.05, 0.1],
+                    'num_leaves': [10, 15, 20],
+                    'reg_alpha': [0.5, 1.0, 2.0],
+                    'reg_lambda': [0.5, 1.0, 2.0]
+                }
+            }
+        except ImportError:
+            pass
         
         return configs
     
-    def train_single_model(
+    def validate_model_robustness(
         self,
-        model_name: str,
+        model,
         X_train: np.ndarray,
         y_train: np.ndarray,
         X_test: np.ndarray,
         y_test: np.ndarray,
-        hyperparameter_tuning: str = "false",
-        cv_folds: int = 5,
-        n_iter: int = 50,
-        feature_names: List[str] = None
-    ) -> Dict[str, Any]:
+        cv_folds: int = 5
+    ) -> Dict[str, float]:
         """
-        Train a single model with hyperparameter tuning.
+        Validate model robustness with strict overfitting detection.
         
         Parameters
         ----------
-        model_name : str
-            Name of the model to train
+        model : sklearn model
+            Trained model
         X_train : np.ndarray
             Training features
         y_train : np.ndarray
@@ -458,255 +508,148 @@ class RegressionModelBuilder:
             Test features
         y_test : np.ndarray
             Test target
-        hyperparameter_tuning : str, optional
-            Type of hyperparameter tuning ('grid', 'randomized', 'none'), by default "randomized"
         cv_folds : int, optional
-            Number of cross-validation folds, by default 5
-        n_iter : int, optional
-            Number of iterations for randomized search, by default 50
+            Number of CV folds, by default 5
             
         Returns
         -------
-        Dict[str, Any]
-            Model training results
+        Dict[str, float]
+            Robustness metrics
         """
-        configs = self.get_model_configurations()
+        # Training performance
+        train_pred = model.predict(X_train)
+        r2_train = r2_score(y_train, train_pred)
+        rmse_train = np.sqrt(mean_squared_error(y_train, train_pred))
         
-        if model_name not in configs:
-            available_models = list(configs.keys())
-            raise ValueError(f"Unknown model: {model_name}. Available models: {available_models}")
+        # Test performance
+        test_pred = model.predict(X_test)
+        r2_test = r2_score(y_test, test_pred)
+        rmse_test = np.sqrt(mean_squared_error(y_test, test_pred))
         
-        config = configs[model_name]
-        base_model = config['model']
+        # Cross-validation performance
+        cv_scores = cross_val_score(model, X_train, y_train, cv=cv_folds, scoring='r2')
+        r2_cv_mean = cv_scores.mean()
+        r2_cv_std = cv_scores.std()
         
-        print(f"Training {model_name}...")
-        start_time = time.time()
+        # Calculate overfitting indicators
+        r2_diff = r2_train - r2_test
+        r2_cv_diff = r2_train - r2_cv_mean
         
-        if hyperparameter_tuning == "grid":
-            # Grid search
-            search = GridSearchCV(
-                base_model,
-                config['params'],
-                cv=cv_folds,
-                scoring='neg_mean_squared_error',
-                #n_jobs=self.n_jobs,
-                verbose=0
-            )
-        elif hyperparameter_tuning == "randomized":
-            # Randomized search
-            search = RandomizedSearchCV(
-                base_model,
-                config['param_distributions'],
-                n_iter=n_iter,
-                cv=cv_folds,
-                scoring='neg_mean_squared_error',
-                #n_jobs=self.n_jobs,
-                random_state=self.random_state,
-                verbose=0
-            )
-        else:
-            # No hyperparameter tuning
-            search = base_model
-        
-        # Fit the model
-        if hyperparameter_tuning != "none":
-            search.fit(X_train, y_train)
-            best_model = search.best_estimator_
-            best_params = search.best_params_
-            cv_score = -search.best_score_
-        else:
-            search.fit(X_train, y_train)
-            best_model = search
-            best_params = {}
-            # Cross-validation evaluation
-            if self.problem_type == 'classification':
-                cv_scores = cross_val_score(best_model, X_train, y_train, cv=cv_folds, scoring='accuracy')
-                print(f"Accuracy in cross-validation: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
-            else:
-                try:
-                    cv_scores = cross_val_score(best_model, X_train, y_train, cv=cv_folds, scoring='neg_root_mean_squared_error')
-                    print(f"RMSE in cross-validation: {-cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
-                except:
-                    pass
-            cv_score = -cv_scores.mean()
-        
-        # Make predictions
-        train_pred = best_model.predict(X_train)
-        test_pred = best_model.predict(X_test)
-        
-        # Calculate metrics
-        train_metrics = self._calculate_metrics(y_train, train_pred)
-        test_metrics = self._calculate_metrics(y_test, test_pred)
-        
-        # Feature importance
-        importance = self._get_feature_importance(best_model, model_name, feature_names)
-        
-        training_time = time.time() - start_time
+        # Stability metric: how much CV varies
+        cv_stability = 1 - (r2_cv_std / max(abs(r2_cv_mean), 0.01))
         
         return {
-            'model': best_model,
-            'model_name': model_name,
-            'best_params': best_params,
-            'train_metrics': train_metrics,
-            'test_metrics': test_metrics,
-            'cv_score': cv_score,
-            'feature_importance': importance,
-            'training_time': training_time,
-            'train_predictions': train_pred,
-            'test_predictions': test_pred
+            'r2_train': r2_train,
+            'r2_test': r2_test,
+            'r2_cv_mean': r2_cv_mean,
+            'r2_cv_std': r2_cv_std,
+            'rmse_train': rmse_train,
+            'rmse_test': rmse_test,
+            'r2_diff_train_test': r2_diff,
+            'r2_diff_train_cv': r2_cv_diff,
+            'cv_stability': cv_stability
         }
     
-    def _calculate_metrics(self, y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
-        """Calculate regression metrics."""
-        return {
-            'rmse': np.sqrt(mean_squared_error(y_true, y_pred)),
-            'mae': mean_absolute_error(y_true, y_pred),
-            'r2': r2_score(y_true, y_pred),
-            'mape': mean_absolute_percentage_error(y_true, y_pred) * 100
-        }
-    
-    def _get_feature_importance(self, model, model_name: str, feature_names: List[str] = None) -> Optional[Dict[str, Union[np.ndarray, pd.DataFrame]]]:
+    def select_best_model_conservative(
+        self,
+        model_results: Dict[str, Dict],
+        verbose: bool = True
+    ) -> Tuple[str, Dict]:
         """
-        Extract feature importance from model with enhanced support for different model types.
+        Select best model using conservative criteria to prevent overfitting.
         
         Parameters
         ----------
-        model : sklearn model
-            Trained model instance
-        model_name : str
-            Name of the model
-        feature_names : List[str], optional
-            Names of the features, by default None
+        model_results : Dict[str, Dict]
+            Results from multiple models
+        verbose : bool, optional
+            Whether to print selection details, by default True
             
         Returns
         -------
-        Optional[Dict[str, Union[np.ndarray, pd.DataFrame]]]
-            Dictionary containing feature importance data and metadata
+        Tuple[str, Dict]
+            Best model name and its results
         """
-        try:
-            importance_data = {}
+        if verbose:
+            print("  Applying conservative model selection criteria...")
+        
+        best_model_name = None
+        best_score = -np.inf
+        best_result = None
+        
+        # Define conservative thresholds
+        max_r2_diff = 0.15        # Max difference between train and test R²
+        min_r2_test = 0.6         # Minimum acceptable test R²
+        min_cv_stability = 0.7    # Minimum CV stability
+        max_cv_std = 0.2          # Maximum CV standard deviation
+        
+        eligible_models = []
+        
+        for model_name, result in model_results.items():
+            metrics = result['robustness_metrics']
             
-            # Try different methods to extract feature importance
-            if hasattr(model, 'feature_importances_'):
-                # Tree-based models (Random Forest, XGBoost, LightGBM, etc.)
-                importances = model.feature_importances_
-                importance_type = 'feature_importances'
-                
-            elif hasattr(model, 'coef_'):
-                # Linear models (Logistic Regression, Ridge, Lasso, etc.)
-                coef = model.coef_
-                
-                # Handle different coefficient shapes
-                if len(coef.shape) == 1:
-                    # Binary classification or regression
-                    importances = np.abs(coef)
-                else:
-                    # Multi-class classification - take mean across classes
-                    importances = np.mean(np.abs(coef), axis=0)
-                
-                importance_type = 'coefficients'
-                
-            elif hasattr(model, 'dual_coef_') and hasattr(model, 'support_'):
-                # Support Vector Machines
-                if hasattr(model, 'coef_'):
-                    # Linear SVM
-                    coef = model.coef_
-                    if len(coef.shape) == 1:
-                        importances = np.abs(coef)
-                    else:
-                        importances = np.mean(np.abs(coef), axis=0)
-                else:
-                    # Non-linear SVM - feature importance not directly available
-                    print(f"Warning: {model_name} (non-linear SVM) doesn't provide direct feature importance")
-                    return None
-                
-                importance_type = 'svm_coefficients'
-                
-            elif model_name.lower() in ['xgboost', 'xgb'] and hasattr(model, 'get_booster'):
-                # XGBoost specific method
-                try:
-                    booster = model.get_booster()
-                    importance_dict = booster.get_score(importance_type='gain')
-                    
-                    # Create importance array in correct order
-                    if feature_names:
-                        importances = np.array([importance_dict.get(f'f{i}', 0.0) for i in range(len(feature_names))])
-                    else:
-                        importances = np.array(list(importance_dict.values()))
-                    
-                    importance_type = 'xgboost_gain'
-                except Exception:
-                    # Fallback to feature_importances_ if available
-                    if hasattr(model, 'feature_importances_'):
-                        importances = model.feature_importances_
-                        importance_type = 'feature_importances'
-                    else:
-                        return None
-                        
-            elif model_name.lower() in ['lightgbm', 'lgb'] and hasattr(model, 'booster_'):
-                # LightGBM specific method
-                try:
-                    importances = model.feature_importances_
-                    importance_type = 'lightgbm_importance'
-                except Exception:
-                    return None
-                    
-            else:
-                # Model doesn't support feature importance
-                print(f"Warning: {model_name} doesn't provide feature importance")
-                return None
-            
-            # Validate importances
-            if importances is None or len(importances) == 0:
-                return None
-                
-            # Ensure importances is a numpy array
-            importances = np.array(importances)
-            
-            # Create feature names if not provided
-            if feature_names is None:
-                feature_names = [f"Feature_{i}" for i in range(len(importances))]
-            elif len(feature_names) != len(importances):
-                print(f"Warning: Feature names length ({len(feature_names)}) doesn't match importances length ({len(importances)})")
-                feature_names = [f"Feature_{i}" for i in range(len(importances))]
-            
-            # Create DataFrame for easier manipulation
-            feature_importance_df = pd.DataFrame({
-                'Feature': feature_names,
-                'Importance': importances,
-                'Importance_Normalized': importances / np.sum(importances) if np.sum(importances) > 0 else importances
-            }).sort_values(by='Importance', ascending=False)
-            
-            # Calculate additional statistics
-            importance_stats = {
-                'total_importance': np.sum(importances),
-                'mean_importance': np.mean(importances),
-                'std_importance': np.std(importances),
-                'max_importance': np.max(importances),
-                'min_importance': np.min(importances),
-                'n_features': len(importances),
-                'importance_type': importance_type
+            # Check conservative criteria
+            criteria_met = {
+                'r2_diff': metrics['r2_diff_train_test'] <= max_r2_diff,
+                'r2_test': metrics['r2_test'] >= min_r2_test,
+                'cv_stability': metrics['cv_stability'] >= min_cv_stability,
+                'cv_std': metrics['r2_cv_std'] <= max_cv_std
             }
             
-            # Store results
-            importance_data = {
-                'importances': importances,
-                'feature_names': feature_names,
-                'importance_df': feature_importance_df,
-                'importance_stats': importance_stats,
-                'model_name': model_name,
-                'importance_type': importance_type
-            }
+            all_criteria_met = all(criteria_met.values())
             
-            return importance_data
+            if verbose:
+                print(f"    {model_name}:")
+                print(f"      R² Train: {metrics['r2_train']:.3f}")
+                print(f"      R² Test: {metrics['r2_test']:.3f}")
+                print(f"      R² Diff: {metrics['r2_diff_train_test']:.3f} ({'✓' if criteria_met['r2_diff'] else '✗'})")
+                print(f"      CV Mean: {metrics['r2_cv_mean']:.3f}")
+                print(f"      CV Std: {metrics['r2_cv_std']:.3f} ({'✓' if criteria_met['cv_std'] else '✗'})")
+                print(f"      CV Stability: {metrics['cv_stability']:.3f} ({'✓' if criteria_met['cv_stability'] else '✗'})")
+                print(f"      Conservative: {'✓' if all_criteria_met else '✗'}")
             
-        except Exception as e:
-            print(f"Error extracting feature importance for {model_name}: {str(e)}")
-            return None
-
-
+            if all_criteria_met:
+                eligible_models.append((model_name, result, metrics))
+        
+        if eligible_models:
+            # Among eligible models, select based on composite score
+            for model_name, result, metrics in eligible_models:
+                # Composite score: prioritize test performance and stability
+                composite_score = (
+                    0.4 * metrics['r2_test'] +           # 40% test R²
+                    0.3 * metrics['r2_cv_mean'] +        # 30% CV mean
+                    0.2 * metrics['cv_stability'] +      # 20% stability
+                    0.1 * (1 - metrics['r2_cv_std'])     # 10% low variance
+                )
+                
+                if composite_score > best_score:
+                    best_score = composite_score
+                    best_model_name = model_name
+                    best_result = result
+        
+        else:
+            # No model meets conservative criteria, select least overfitted
+            if verbose:
+                print("    ⚠️ No model meets conservative criteria. Selecting least overfitted.")
+            
+            min_overfit = np.inf
+            for model_name, result in model_results.items():
+                metrics = result['robustness_metrics']
+                overfit_score = metrics['r2_diff_train_test'] + metrics['r2_cv_std']
+                
+                if overfit_score < min_overfit and metrics['r2_test'] > 0:
+                    min_overfit = overfit_score
+                    best_model_name = model_name
+                    best_result = result
+        
+        if verbose and best_model_name:
+            metrics = best_result['robustness_metrics']
+            print(f"  🏆 Selected: {best_model_name}")
+            print(f"    Final R² Test: {metrics['r2_test']:.3f}")
+            print(f"    Overfitting Risk: {'Low' if metrics['r2_diff_train_test'] <= 0.1 else 'Medium' if metrics['r2_diff_train_test'] <= 0.2 else 'High'}")
+        
+        return best_model_name, best_result
     
-
     def build_models(
         self,
         data: pd.DataFrame,
@@ -714,13 +657,14 @@ class RegressionModelBuilder:
         target_column: str,
         feature_columns: List[str],
         models_to_train: Optional[List[str]] = None,
-        hyperparameter_tuning: str = "none",
+        hyperparameter_tuning: str = "grid",  # Use grid search for conservative tuning
         models_dir: str = "models",
-        save_models: bool = False
+        save_models: bool = False,
+        user_features: Optional[List[str]] = None  # User-specified features
     ) -> Dict[int, Dict[str, Any]]:
         """
-        Build regression models for each cluster.
-
+        Build regression models with aggressive overfitting prevention.
+        
         Parameters
         ----------
         data : pd.DataFrame
@@ -732,21 +676,23 @@ class RegressionModelBuilder:
         feature_columns : List[str]
             List of feature column names
         models_to_train : Optional[List[str]], optional
-            List of models to train, by default None (trains all available)
+            List of models to train, by default None (trains conservative models)
         hyperparameter_tuning : str, optional
-            Type of hyperparameter tuning, by default "randomized"
+            Type of hyperparameter tuning, by default "grid"
         models_dir : str, optional
             Directory to save models, by default "models"
         save_models : bool, optional
-            Whether to save trained models, by default True
+            Whether to save trained models, by default False
+        user_features : Optional[List[str]], optional
+            User-specified features to use instead of automated selection, by default None
             
         Returns
         -------
         Dict[int, Dict[str, Any]]
             Dictionary mapping cluster IDs to model results
         """
-        # Get available models
-        available_models = list(self.get_model_configurations().keys())
+        # Get conservative model configurations
+        available_models = list(self.get_conservative_model_configurations().keys())
         
         if models_to_train is None:
             models_to_train = available_models
@@ -786,197 +732,317 @@ class RegressionModelBuilder:
         cluster_models = {}
         unique_clusters = sorted(clustered_data['cluster'].unique())
 
-        print(f"Building regression models for {len(unique_clusters)} clusters...")
+        print(f"Building ANTI-OVERFITTING regression models for {len(unique_clusters)} clusters...")
         print(f"Models to train: {models_to_train}")
-        print(f"Hyperparameter tuning: {hyperparameter_tuning}")
-        print("-" * 60)
+        print(f"Conservative approach: Strong regularization + Limited features + Strict validation")
+        if user_features:
+            print(f"User-specified features: {user_features}")
+        print("-" * 80)
 
         for cluster_id in unique_clusters:
             if cluster_id == -1:  # Skip noise points from DBSCAN
                 print(f"Skipping noise cluster (ID: -1)")
                 continue
                 
-            print(f"\nProcessing Cluster {cluster_id}")
-            print("-" * 40)
+            print(f"\n🔍 Processing Cluster {cluster_id}")
+            print("-" * 50)
             
             # Get cluster data
             cluster_data = clustered_data[clustered_data['cluster'] == cluster_id].copy()
             
-            # Check minimum sample size
-            min_samples_required = 20  # Minimum for reliable model training
+            # More stringent minimum sample size for reliable validation
+            min_samples_required = 30  # Increased for better validation
             if len(cluster_data) < min_samples_required:
-                print(f"Warning: Cluster {cluster_id} has only {len(cluster_data)} samples.")
+                print(f"❌ Cluster {cluster_id} has only {len(cluster_data)} samples.")
                 print(f"Minimum required: {min_samples_required}. Skipping this cluster.")
                 continue
             
             # Check for target variance
             target_values = cluster_data[target_column].dropna()
             if len(target_values) == 0:
-                print(f"Warning: No valid target values in cluster {cluster_id}. Skipping.")
+                print(f"❌ No valid target values in cluster {cluster_id}. Skipping.")
                 continue
             
             if target_values.std() == 0:
-                print(f"Warning: No variance in target column for cluster {cluster_id}. Skipping.")
+                print(f"❌ No variance in target column for cluster {cluster_id}. Skipping.")
                 continue
             
-            print(f"Cluster size: {len(cluster_data)} samples")
-            print(f"Target statistics: mean={target_values.mean():.3f}, std={target_values.std():.3f}")
+            print(f"✅ Cluster size: {len(cluster_data)} samples")
+            print(f"📊 Target statistics: mean={target_values.mean():.3f}, std={target_values.std():.3f}")
             
-            # Prepare data for this cluster
+            # Prepare data with conservative feature selection
             try:
-                X_train, X_test, y_train, y_test, features = self.prepare_data(
+                X_train, X_test, y_train, y_test, selected_features = self.prepare_data_with_feature_selection(
                     cluster_data, target_column, feature_columns,
-                    test_size=0.2, scale_features=False
+                    test_size=0.3,  # Larger test set
+                    scale_features=True,
+                    max_features_ratio=0.25,  # Conservative feature ratio
+                    min_features=3,
+                    max_features_absolute=12,  # Lower absolute limit
+                    user_features=user_features  # Pass user features
                 )
                 
-                print(f"Training set: {len(X_train)} samples")
-                print(f"Test set: {len(X_test)} samples")
+                # Store selected features for this cluster
+                self.selected_features[cluster_id] = selected_features
+                
+                print(f"📈 Training set: {len(X_train)} samples, {len(selected_features)} features")
+                print(f"📉 Test set: {len(X_test)} samples")
                 
             except Exception as e:
-                print(f"Error preparing data for cluster {cluster_id}: {str(e)}")
+                print(f"❌ Error preparing data for cluster {cluster_id}: {str(e)}")
                 continue
             
             # Train models for this cluster
-            cluster_results = {}
-            model_performances = []
+            model_results = {}
             
             for model_name in models_to_train:
-                print(f"\nTraining {model_name}...")
+                print(f"\n  🤖 Training {model_name}...")
                 
                 try:
-                    model_result = self.train_single_model(
-                        model_name=model_name,
-                        X_train=X_train,
-                        y_train=y_train,
-                        X_test=X_test,
-                        y_test=y_test,
-                        hyperparameter_tuning=hyperparameter_tuning,
-                        cv_folds=5,
-                        n_iter=50 if hyperparameter_tuning == "randomized" else None,
-                        feature_names=features,
+                    # Get model configuration
+                    configs = self.get_conservative_model_configurations()
+                    config = configs[model_name]
+                    base_model = config['model']
+                    
+                    # Perform hyperparameter tuning with conservative approach
+                    if hyperparameter_tuning == "grid":
+                        
+                        search = GridSearchCV(
+                            base_model,
+                            config['params'],
+                            cv=5,  # Conservative CV
+                            scoring='r2',
+                            n_jobs=self.n_jobs,
+                            verbose=0
+                        )
+                        search.fit(X_train, y_train)
+                        best_model = search.best_estimator_
+                        best_params = search.best_params_
+                    
+                    elif hyperparameter_tuning == "randomized":
+                        
+                        search = RandomizedSearchCV(
+                            base_model,
+                            config['params'],
+                            n_iter=20,  # Limited iterations to prevent overfitting to CV
+                            cv=5,
+                            scoring='r2',
+                            n_jobs=self.n_jobs,
+                            random_state=self.random_state,
+                            verbose=0
+                        )
+                        search.fit(X_train, y_train)
+                        best_model = search.best_estimator_
+                        best_params = search.best_params_
+                    
+                    else:  # No hyperparameter tuning
+                        best_model = base_model
+                        best_model.fit(X_train, y_train)
+                        best_params = {}
+                    
+                    # Validate model robustness
+                    robustness_metrics = self.validate_model_robustness(
+                        best_model, X_train, y_train, X_test, y_test, cv_folds=5
                     )
                     
-                    cluster_results[model_name] = model_result
+                    # Calculate additional metrics
+                    train_pred = best_model.predict(X_train)
+                    test_pred = best_model.predict(X_test)
                     
-                    # Store performance for comparison
-                    performance_info = {
-                        'model': model_name,
-                        'cv_score': model_result['cv_score'],
-                        'test_r2': model_result['test_metrics']['r2'],
-                        'test_rmse': model_result['test_metrics']['rmse'],
-                        'test_mae': model_result['test_metrics']['mae'],
-                        'training_time': model_result['training_time']
+                    train_metrics = {
+                        'r2': robustness_metrics['r2_train'],
+                        'rmse': robustness_metrics['rmse_train'],
+                        'mae': mean_absolute_error(y_train, train_pred)
                     }
-                    model_performances.append(performance_info)
                     
-                    # Print performance
-                    metrics = model_result['test_metrics']
-                    print(f"  ✓ {model_name} completed:")
-                    print(f"    R² Score: {metrics['r2']:.4f}")
-                    print(f"    RMSE: {metrics['rmse']:.4f}")
-                    print(f"    MAE: {metrics['mae']:.4f}")
-                    print(f"    MAPE: {metrics['mape']:.2f}%")
-                    print(f"    CV Score (RMSE): {model_result['cv_score']:.4f}")
-                    print(f"    Training time: {model_result['training_time']:.2f}s")
+                    test_metrics = {
+                        'r2': robustness_metrics['r2_test'],
+                        'rmse': robustness_metrics['rmse_test'],
+                        'mae': mean_absolute_error(y_test, test_pred)
+                    }
+                    
+                    # Store model results
+                    model_results[model_name] = {
+                        'model': best_model,
+                        'model_name': model_name,
+                        'best_params': best_params,
+                        'train_metrics': train_metrics,
+                        'test_metrics': test_metrics,
+                        'robustness_metrics': robustness_metrics,
+                        'selected_features': selected_features,
+                        'train_predictions': train_pred,
+                        'test_predictions': test_pred
+                    }
+                    
+                    # Print performance with overfitting indicators
+                    print(f"    ✅ {model_name} completed:")
+                    print(f"      R² Train: {train_metrics['r2']:.4f}")
+                    print(f"      R² Test: {test_metrics['r2']:.4f}")
+                    print(f"      R² Diff: {robustness_metrics['r2_diff_train_test']:.4f}")
+                    print(f"      CV Mean: {robustness_metrics['r2_cv_mean']:.4f} ± {robustness_metrics['r2_cv_std']:.4f}")
+                    print(f"      RMSE Test: {test_metrics['rmse']:.4f}")
+                    print(f"      CV Stability: {robustness_metrics['cv_stability']:.4f}")
+                    
+                    # Overfitting warning
+                    if robustness_metrics['r2_diff_train_test'] > 0.15:
+                        print(f"      ⚠️ HIGH OVERFITTING RISK (R² diff > 0.15)")
+                    elif robustness_metrics['r2_diff_train_test'] > 0.1:
+                        print(f"      ⚠️ Medium overfitting risk (R² diff > 0.1)")
+                    else:
+                        print(f"      ✅ Low overfitting risk")
                     
                 except Exception as e:
-                    print(f"  ✗ Error training {model_name}: {str(e)}")
+                    print(f"    ❌ Error training {model_name}: {str(e)}")
                     continue
             
-            # Select best model and compile cluster results
-            if model_performances:
-                # Select best model based on CV score (lowest RMSE)
-                best_model_info = min(model_performances, key=lambda x: x['cv_score'])
-                best_model_name = best_model_info['model']
-                best_model_result = cluster_results[best_model_name]
+            # Select best model using conservative criteria
+            if model_results:
+                print(f"\n🏆 Model Selection for Cluster {cluster_id}:")
+                best_model_name, best_result = self.select_best_model_conservative(
+                    model_results, verbose=True
+                )
                 
-                print(f"\n🏆 Best model for cluster {cluster_id}: {best_model_name}")
-                print(f"   CV RMSE: {best_model_info['cv_score']:.4f}")
-                print(f"   Test R²: {best_model_info['test_r2']:.4f}")
-                
-                # Store scaler used for this cluster
-                scaler_key = f"cluster_{cluster_id}"
-                self.scalers[scaler_key] = self.scaler
-                
-                # Compile cluster model information
-                cluster_models[cluster_id] = {
-                    'models': cluster_results,
-                    'best_model': best_model_result['model'],
-                    'best_model_name': best_model_name,
-                    'best_model_metrics': best_model_result['test_metrics'],
-                    'best_model_cv_score': best_model_info['cv_score'],
-                    'model_comparison': model_performances,
-                    'feature_columns': features,
-                    'target_column': target_column,
-                    'cluster_size': len(cluster_data),
-                    'data_split': {
-                        'train_size': len(X_train),
-                        'test_size': len(X_test),
-                        'train_target_mean': np.mean(y_train),
-                        'train_target_std': np.std(y_train),
-                        'test_target_mean': np.mean(y_test),
-                        'test_target_std': np.std(y_test)
-                    },
-                    'feature_importance': best_model_result.get('feature_importance'),
-                    'hyperparameter_tuning': hyperparameter_tuning,
-                    'best_params': best_model_result.get('best_params', {}),
-                    'scaler': self.scaler
-                }
-                
-                # Store feature importance for analysis
-                # if best_model_result.get('feature_importance') is not None:
-                #     importance_dict = dict(zip(features, best_model_result['feature_importance']))
-                #     self.feature_importance[cluster_id] = importance_dict
-                
-                # Store model performance
-                self.model_performance[cluster_id] = {
-                    'best_model': best_model_name,
-                    'performance': best_model_result['test_metrics'],
-                    'cv_score': best_model_info['cv_score']
-                }
-                
+                if best_model_name:
+                    # Store scaler used for this cluster
+                    scaler_key = f"cluster_{cluster_id}"
+                    self.scalers[scaler_key] = self.scaler
+                    
+                    # Compile cluster model information
+                    cluster_models[cluster_id] = {
+                        'models': model_results,
+                        'best_model': best_result['model'],
+                        'best_model_name': best_model_name,
+                        'best_model_metrics': best_result['test_metrics'],
+                        'best_model_robustness': best_result['robustness_metrics'],
+                        'best_params': best_result['best_params'],
+                        'selected_features': selected_features,
+                        'feature_columns': selected_features,
+                        'target_column': target_column,
+                        'cluster_size': len(cluster_data),
+                        'data_split': {
+                            'train_size': len(X_train),
+                            'test_size': len(X_test),
+                            'train_target_mean': np.mean(y_train),
+                            'train_target_std': np.std(y_train),
+                            'test_target_mean': np.mean(y_test),
+                            'test_target_std': np.std(y_test)
+                        },
+                        'hyperparameter_tuning': hyperparameter_tuning,
+                        'scaler': self.scaler,
+                        'overfitting_assessment': {
+                            'risk_level': 'Low' if best_result['robustness_metrics']['r2_diff_train_test'] <= 0.1 
+                                         else 'Medium' if best_result['robustness_metrics']['r2_diff_train_test'] <= 0.2 
+                                         else 'High',
+                            'r2_difference': best_result['robustness_metrics']['r2_diff_train_test'],
+                            'cv_stability': best_result['robustness_metrics']['cv_stability']
+                        }
+                    }
+                    
+                    # Store model performance
+                    self.model_performance[cluster_id] = {
+                        'best_model': best_model_name,
+                        'performance': best_result['test_metrics'],
+                        'robustness': best_result['robustness_metrics']
+                    }
+                    
+                else:
+                    print(f"  ❌ No suitable model found for cluster {cluster_id}")
+                    continue
             else:
                 print(f"  ❌ No models successfully trained for cluster {cluster_id}")
                 continue
 
-        # Print overall summary
-        print(f"\n{'='*60}")
-        print("MODEL BUILDING SUMMARY")
-        print(f"{'='*60}")
+        # Print comprehensive summary
+        print(f"\n{'='*80}")
+        print("ANTI-OVERFITTING MODEL BUILDING SUMMARY")
+        print(f"{'='*80}")
 
         if cluster_models:
-            print(f"Successfully built models for {len(cluster_models)} clusters")
+            print(f"✅ Successfully built models for {len(cluster_models)} clusters")
             
-            # Best model distribution
+            # Analyze overfitting risks
+            risk_counts = {'Low': 0, 'Medium': 0, 'High': 0}
             model_counts = {}
-            total_r2_scores = []
-            total_rmse_scores = []
+            r2_test_scores = []
+            r2_differences = []
+            cv_stabilities = []
+            feature_counts = []
             
-            for cluster_id, cluster_data in cluster_models.items():
-                best_model = cluster_data['best_model_name']
+            for cluster_id, cluster_info in cluster_models.items():
+                # Risk assessment
+                risk_level = cluster_info['overfitting_assessment']['risk_level']
+                risk_counts[risk_level] += 1
+                
+                # Model distribution
+                best_model = cluster_info['best_model_name']
                 model_counts[best_model] = model_counts.get(best_model, 0) + 1
                 
-                metrics = cluster_data['best_model_metrics']
-                total_r2_scores.append(metrics['r2'])
-                total_rmse_scores.append(metrics['rmse'])
+                # Performance metrics
+                robustness = cluster_info['best_model_robustness']
+                r2_test_scores.append(robustness['r2_test'])
+                r2_differences.append(robustness['r2_diff_train_test'])
+                cv_stabilities.append(robustness['cv_stability'])
+                feature_counts.append(len(cluster_info['selected_features']))
             
-            print(f"\nBest model distribution:")
+            # Risk distribution
+            total_clusters = len(cluster_models)
+            print(f"\n📊 Overfitting Risk Assessment:")
+            for risk_level, count in risk_counts.items():
+                percentage = (count / total_clusters) * 100
+                emoji = "✅" if risk_level == "Low" else "⚠️" if risk_level == "Medium" else "❌"
+                print(f"  {emoji} {risk_level} Risk: {count} clusters ({percentage:.1f}%)")
+            
+            # Model distribution
+            print(f"\n🤖 Best Model Distribution:")
             for model_name, count in sorted(model_counts.items()):
-                percentage = (count / len(cluster_models)) * 100
+                percentage = (count / total_clusters) * 100
                 print(f"  {model_name}: {count} clusters ({percentage:.1f}%)")
             
-            # Overall performance statistics
-            if total_r2_scores:
-                print(f"\nOverall performance statistics:")
-                print(f"  R² Score  - Mean: {np.mean(total_r2_scores):.4f} ± {np.std(total_r2_scores):.4f}")
-                print(f"  R² Score  - Range: [{np.min(total_r2_scores):.4f}, {np.max(total_r2_scores):.4f}]")
-                print(f"  RMSE      - Mean: {np.mean(total_rmse_scores):.4f} ± {np.std(total_rmse_scores):.4f}")
-                print(f"  RMSE      - Range: [{np.min(total_rmse_scores):.4f}, {np.max(total_rmse_scores):.4f}]")
+            # Feature usage analysis
+            print(f"\n🔍 Feature Selection Analysis:")
+            print(f"  Average features per cluster: {np.mean(feature_counts):.1f}")
+            print(f"  Feature count range: [{np.min(feature_counts)}, {np.max(feature_counts)}]")
+            print(f"  Feature reduction: {len(feature_columns)} → {np.mean(feature_counts):.1f} avg")
             
+            # Performance statistics
+            print(f"\n📈 Performance Statistics:")
+            print(f"  R² Test    - Mean: {np.mean(r2_test_scores):.4f} ± {np.std(r2_test_scores):.4f}")
+            print(f"  R² Test    - Range: [{np.min(r2_test_scores):.4f}, {np.max(r2_test_scores):.4f}]")
+            print(f"  R² Diff    - Mean: {np.mean(r2_differences):.4f} ± {np.std(r2_differences):.4f}")
+            print(f"  R² Diff    - Range: [{np.min(r2_differences):.4f}, {np.max(r2_differences):.4f}]")
+            print(f"  CV Stability - Mean: {np.mean(cv_stabilities):.4f} ± {np.std(cv_stabilities):.4f}")
+            
+            # Conservative success metrics
+            conservative_success = sum(1 for r in r2_differences if r <= 0.15)
+            conservative_percentage = (conservative_success / total_clusters) * 100
+            
+            print(f"\n🎯 Conservative Success Metrics:")
+            print(f"  Models with R² diff ≤ 0.15: {conservative_success}/{total_clusters} ({conservative_percentage:.1f}%)")
+            print(f"  Average CV stability: {np.mean(cv_stabilities):.3f}")
+            
+            # Recommendations
+            print(f"\n💡 Recommendations:")
+            if np.mean(r2_differences) <= 0.1:
+                print("  ✅ Excellent overfitting control achieved")
+            elif np.mean(r2_differences) <= 0.15:
+                print("  ✅ Good overfitting control achieved")
+            else:
+                print("  ⚠️ Consider further regularization or feature reduction")
+            
+            if np.mean(cv_stabilities) >= 0.8:
+                print("  ✅ High model stability achieved")
+            elif np.mean(cv_stabilities) >= 0.7:
+                print("  ✅ Adequate model stability achieved")
+            else:
+                print("  ⚠️ Consider simpler models or more data")
 
         else:
             print("❌ No models were successfully built for any cluster")
-            print("Check your data quality, cluster sizes, and parameter settings")
+            print("Possible causes:")
+            print("  - Clusters too small (< 30 samples)")
+            print("  - Insufficient feature diversity")
+            print("  - Target variable lacks variance")
+            print("  - Data quality issues")
 
         # Save models if requested
         if save_models and cluster_models:
@@ -989,11 +1055,16 @@ class RegressionModelBuilder:
         # Store results in class attributes
         self.best_models = cluster_models
 
-        print(f"\n🎉 Model building completed!")
+        print(f"\n🎉 Anti-overfitting model building completed!")
+        print(f"📋 Built {len(cluster_models)} robust models with conservative validation")
+        
         return cluster_models
     
     def _save_models(self, cluster_models: Dict, models_dir: str):
-        """Save trained models to disk."""
+        """Save trained models to disk with additional metadata."""
+        import os
+        import joblib
+        
         os.makedirs(models_dir, exist_ok=True)
         
         # Save each cluster's models
@@ -1010,22 +1081,84 @@ class RegressionModelBuilder:
                 scaler_file = os.path.join(cluster_dir, 'scaler.pkl')
                 joblib.dump(cluster_info['scaler'], scaler_file)
             
-            # Save metadata
+            # Save comprehensive metadata
             metadata = {
                 'best_model_name': cluster_info['best_model_name'],
                 'best_model_metrics': cluster_info['best_model_metrics'],
-                'feature_columns': cluster_info['feature_columns'],
+                'robustness_metrics': cluster_info['best_model_robustness'],
+                'selected_features': cluster_info['selected_features'],
                 'target_column': cluster_info['target_column'],
                 'cluster_size': cluster_info['cluster_size'],
-                'best_params': cluster_info['best_params']
+                'best_params': cluster_info['best_params'],
+                'overfitting_assessment': cluster_info['overfitting_assessment'],
+                'data_split': cluster_info['data_split']
             }
             
             metadata_file = os.path.join(cluster_dir, 'metadata.pkl')
             joblib.dump(metadata, metadata_file)
         
-        # Save overall summary
-        summary_file = os.path.join(models_dir, 'models_summary.pkl')
-        joblib.dump({
-            'cluster_models': {cid: {k: v for k, v in info.items() if k != 'best_model'} 
-                              for cid, info in cluster_models.items()}
-        }, summary_file)
+        # Save overall summary with anti-overfitting analysis
+        summary = {
+            'total_clusters': len(cluster_models),
+            'feature_selection_summary': {
+                cluster_id: info['selected_features'] 
+                for cluster_id, info in cluster_models.items()
+            },
+            'overfitting_analysis': {
+                cluster_id: info['overfitting_assessment']
+                for cluster_id, info in cluster_models.items()
+            },
+            'model_distribution': {},
+            'performance_summary': {}
+        }
+        
+        # Calculate summary statistics
+        model_counts = {}
+        for cluster_info in cluster_models.values():
+            model_name = cluster_info['best_model_name']
+            model_counts[model_name] = model_counts.get(model_name, 0) + 1
+        
+        summary['model_distribution'] = model_counts
+        
+        summary_file = os.path.join(models_dir, 'anti_overfit_summary.pkl')
+        joblib.dump(summary, summary_file)
+    
+    def predict_cluster(
+        self,
+        cluster_id: int,
+        X_new: pd.DataFrame
+    ) -> np.ndarray:
+        """
+        Make predictions for new data using the trained model for a specific cluster.
+        
+        Parameters
+        ----------
+        cluster_id : int
+            Cluster ID to use for prediction
+        X_new : pd.DataFrame
+            New data to predict
+            
+        Returns
+        -------
+        np.ndarray
+            Predictions
+        """
+        if cluster_id not in self.best_models:
+            raise ValueError(f"No model found for cluster {cluster_id}")
+        
+        cluster_info = self.best_models[cluster_id]
+        model = cluster_info['best_model']
+        selected_features = cluster_info['selected_features']
+        scaler = cluster_info.get('scaler')
+        
+        # Select only the features used during training
+        X_selected = X_new[selected_features]
+        
+        # Scale if scaler was used
+        if scaler is not None:
+            X_scaled = scaler.transform(X_selected)
+            predictions = model.predict(X_scaled)
+        else:
+            predictions = model.predict(X_selected.values)
+        
+        return predictions

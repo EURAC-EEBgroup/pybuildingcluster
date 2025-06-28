@@ -192,8 +192,8 @@ release: ## Create a new release (clean, test, build, tag)
 	@echo "$(GREEN)Release ready! Don't forget to:$(NC)"
 	@echo "  1. Update version in pyproject.toml"
 	@echo "  2. Update CHANGELOG.md"
-	@echo "  3. Create git tag: git tag v1.0.0"
-	@echo "  4. Push tag: git push origin v1.0.0"
+	@echo "  3. Create git tag: git tag v1.0.1"
+	@echo "  4. Push tag: git push origin v1.0.1"
 	@echo "  5. Run 'make publish' to upload to PyPI"
 
 env-info: ## Display environment information

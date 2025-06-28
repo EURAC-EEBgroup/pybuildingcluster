@@ -48,6 +48,28 @@ pip install -e ".[dev]"
 
 Here an `Example <https://github.com/EURAC-EEBgroup/pyBuildingCluster/tree/master/examples>` of pybuildingcluster application, using Energy Performance Certifcate dataset
 
+The example use Synthetic dataset of Energy Performance Certificates of public buildings of Italian Region.
+
+Il processo di sintetizzazione è stato realizzato tramite la libreria fornita da MOSTLY AI <https://github.com/mostly-ai/mostlyai>
+All'interno della cartella synthetic è possibile visualizzare il report relativo alla generazione del dataset sintetizzato.
+
+### How to use the synthetic dataset and the library.
+The synthesized dataset, in addition to preserving the same statistical characteristics as the original data, represents a very useful resource for evaluating potential energy efficiency improvements across a building stock where only some buildings' performance data is known. In fact, by generating synthetic data, more robust assessments can be made, since the analysis can be based on a larger number of buildings that closely resemble those present in the actual territory.
+
+Once the data is generated, it can be divided into different clusters based on specific properties.
+In the example provided, the clustering is done using the QHnd property (heating energy demand of the building) and degree days (days with temperatures below 18°C).
+
+Each cluster is then analyzed through a sensitivity analysis of selected parameters.
+In this case, the average thermal transmittance of opaque components and the average thermal transmittance of transparent components are used.
+
+The analysis shows how varying these parameters can lead to significant reductions in energy consumption for the selected cluster.
+For instance, the map illustrates that the dark blue areas correspond to the greatest reductions in consumption, as they represent combinations of low values for both selected parameters. However, this may not always represent the best performance-to-cost ratio. In fact, considerable savings can also be achieved by slightly improving these parameters, which requires a lower investment.
+
+Moreover, specific retrofit scenarios can be identified. In the example, 10 scenarios were analyzed. Not all of them necessarily lead to benefits—only a few may contribute positively to energy consumption reduction.
+
+To support better decision-making, an HTML report is generated that allows users to identify the most effective solution applied
+
+
 ### Python API
 
 ```python

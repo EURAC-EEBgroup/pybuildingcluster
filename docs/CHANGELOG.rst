@@ -4,26 +4,27 @@ Changelog
 
 All notable changes to PyBuildingCluster will be documented in this file.
 
-The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_,
+The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.1/>`_,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-Unreleased
-----------
 
+----------
 Added
 ~~~~~
-- New features will be listed here
+- Updated model selection for sensitivity analysis with conservative statistics
 
 Changed
 ~~~~~~~
-- Changes to existing functionality
+- Model selection for sensitivity analysis with conservative statistics
 
 Fixed
 ~~~~~
 - Bug fixes
 
-1.0.0 (2025-06-26)
+1.0.1 (2025-06-28)
 ------------------
+
+
 
 Added
 ~~~~~

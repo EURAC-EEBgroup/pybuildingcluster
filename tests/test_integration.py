@@ -121,7 +121,7 @@ def synthetic_building_data():
 @pytest.fixture
 def building_data():
     """Create synthetic regression data."""
-    df = pd.read_csv("/Users/dantonucci/Documents/gitHub/geoclustering_sensitivity_analysis/pybuildingcluster/src/pybuildingcluster/data/clustering.csv", sep=",", decimal=".", low_memory=False, header=0, index_col=0)
+    df = pd.read_csv(".../data/clustering.csv", sep=",", decimal=".", low_memory=False, header=0, index_col=0)
     df = df[~df.apply(lambda row: row.astype(str).str.contains("\\n\\t\\t\\t\\t\\t\\t").any(), axis=1)]
     df = df[~df.apply(lambda row: row.astype(str).str.contains("\n").any(), axis=1)]
     df = df.reset_index(drop=True)
