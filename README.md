@@ -327,3 +327,7 @@ N.B. Some parts of the app need to be updated and finalized.
 This work was carried out within European projects: 
 Moderate - Horizon Europe research and innovation programme under grant agreement No 101069834, 
 with the aim of contributing to the development of open products useful for defining plausible scenarios for the decarbonization of the built environment
+
+<p align="center">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/moderate_logo.png" alt=" Moderate Logo" style="width: 100%;">
+</p>
