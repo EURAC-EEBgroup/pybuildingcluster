@@ -56,12 +56,12 @@ All within the synthetic folder it is possible to view the report relative to th
 ### How to use the synthetic dataset and the library.
 The synthesized dataset, in addition to preserving the same statistical characteristics as the original data, represents a very useful resource for evaluating potential energy efficiency improvements across a building stock where only some buildings' performance data is known. In fact, by generating synthetic data, more robust assessments can be made, since the analysis can be based on a larger number of buildings that closely resemble those present in the actual territory.
 
-Here `Report <https://github.com/EURAC-EEBgroup/pyBuildingEnergy/tree/master/synthetization/EPC_tabular.html>` of the synthetic dataset of EPC.
+Here `Report <https://github.com/EURAC-EEBgroup/pybuildingcluster/tree/master/synthetization/EPC_tabular.html>` of the synthetic dataset of EPC.
 
 Once the data is generated, it can be divided into different clusters based on specific properties.
 In the example provided, the clustering is done using the QHnd property (heating energy demand of the building) and  heating degree days.
 
-.. image:: https://github.com/EURAC-EEBgroup/pyBuildingEnergy/blob/master/src/pybuildingenergy/assets/elbow.png
+.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/assets/elbow.png
    :width: 800
    :height: 250
 
@@ -69,7 +69,7 @@ Each cluster is then analyzed through a sensitivity analysis of selected paramet
 
 In this case, the average thermal transmittance of opaque components and the average thermal transmittance of transparent components are used.
 
-.. image:: https://github.com/EURAC-EEBgroup/pyBuildingEnergy/blob/master/src/pybuildingenergy/assets/sensitivity.png
+.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/assets/sensitivity.png
    :width: 800
    :height: 250
 
@@ -78,25 +78,26 @@ The analysis shows how varying these parameters can lead to significant reductio
 For instance, the map illustrates that the dark blue areas correspond to the greatest reductions in consumption, as they represent combinations of low values for both selected parameters. However, this may not always represent the best performance-to-cost ratio. In fact, considerable savings can also be achieved by slightly improving these parameters, which requires a lower investment.
 
 Moreover, specific retrofit scenarios can be identified. 
-.. image:: https://github.com/EURAC-EEBgroup/pyBuildingEnergy/blob/master/src/pybuildingenergy/assets/scenario.png
+.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/assets/scenario.png
    :width: 800
    :height: 250
 
 In the example, 10 scenarios were analyzed. Not all of them necessarily lead to benefits—only a few may contribute positively to energy consumption reduction.
 
-To support better decision-making, an `HTML report <https://github.com/EURAC-EEBgroup/pyBuildingEnergy/blob/master/src/pybuildingenergy/examples/report/scenario_analysis_report.html>` is generated that allows users to identify the most effective solution applied
+To support better decision-making, an `HTML report <https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/examples/report/scenario_analysis_report.html>` is generated that allows users to identify the most effective solution applied
 
 
 ### Python API
 
 ```python
+
 import pandas as pd
 import pybuildingcluster as pbui
 import numpy as np
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
+load_dotenv()
 # Example .env
 '''
 Configurazione Paths
@@ -308,7 +309,7 @@ sensitivity_analyzer.create_scenario_report_html(
     'QHnd', 
     models[0]['feature_columns'],
     output_path = "../examples/example_results/scenario_analysis_report.html")
-
+```
 
 # Web Application 
 An example of web app that uses pyBuildingCluster is available at: 
