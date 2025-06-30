@@ -61,26 +61,25 @@ Here `Report <https://github.com/EURAC-EEBgroup/pybuildingcluster/tree/master/sy
 Once the data is generated, it can be divided into different clusters based on specific properties.
 In the example provided, the clustering is done using the QHnd property (heating energy demand of the building) and  heating degree days.
 
-.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/assets/elbow.png
-   :width: 800
-   :height: 250
+<p align="center">
+  <img src="https://raw.githubusercontent.com/EURAC-EEBgroup/pybuildingcluster/refs/heads/main/docs/assets/elbow.png" alt=" Elbow Method" style="width: 100%;">
+</p>
 
 Each cluster is then analyzed through a sensitivity analysis of selected parameters.
 
 In this case, the average thermal transmittance of opaque components and the average thermal transmittance of transparent components are used.
 
-.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/assets/sensitivity.png
-   :width: 800
-   :height: 250
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/EURAC-EEBgroup/pybuildingcluster/refs/heads/main/docs/assets/sensitivity.png" alt=" Sensitivity Analysis" style="width: 100%;">
+</p>
 
 The analysis shows how varying these parameters can lead to significant reductions in energy consumption for the selected cluster.
 For instance, the map illustrates that the dark blue areas correspond to the greatest reductions in consumption, as they represent combinations of low values for both selected parameters. However, this may not always represent the best performance-to-cost ratio. In fact, considerable savings can also be achieved by slightly improving these parameters, which requires a lower investment.
 
 Moreover, specific retrofit scenarios can be identified. 
-.. image:: https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/master/src/pybuildingcluster/assets/scenario.png
-   :width: 800
-   :height: 250
+<p align="center">
+  <img src="https://raw.githubusercontent.com/EURAC-EEBgroup/pybuildingcluster/refs/heads/main/docs/assets/scenario.png" alt=" Scenario Analysis" style="width: 100%;">
+</p>
 
 In the example, 10 scenarios were analyzed. Not all of them necessarily lead to benefits—only a few may contribute positively to energy consumption reduction.
 
