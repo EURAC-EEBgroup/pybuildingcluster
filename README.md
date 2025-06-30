@@ -1,4 +1,8 @@
-# Geoclustering Sensitivity Analysis
+# pybuildingcluster - (Geo)clustering, sensitivity analysis and scenario-based evaluations
+
+<p align="center">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/pybuildingcluster.png" alt=" pybuildingcluster Logo" style="width: 100%;">
+</p>
 
 A Python library for sensitivity analysis of building clusters, evaluating refurbishment scenarios.
 
