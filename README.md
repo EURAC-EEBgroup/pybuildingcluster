@@ -50,7 +50,10 @@ Here an `Example <https://github.com/EURAC-EEBgroup/pyBuildingCluster/tree/maste
 
 The example use Synthetic dataset of Energy Performance Certificates of public buildings in Piedmont Region, Italy.
 
-The process of synthesis was carried out using the library provided by MOSTLY AI <https://github.com/mostly-ai/mostlyai>
+The process of synthesis was carried out using the library provided by MOSTLY AI <https://github.com/mostly-ai/mostlyai> 
+<p align="center">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/mostly_ai_logo.png" alt=" MOSTLY AI Logo" style="width: 100%;">
+</p>
 All within the synthetic folder it is possible to view the report relative to the generation of the synthetic dataset.
 
 ### How to use the synthetic dataset and the library.
@@ -78,7 +81,7 @@ For instance, the map illustrates that the dark blue areas correspond to the gre
 
 Moreover, specific retrofit scenarios can be identified. 
 <p align="center">
-  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/scenarios.png" alt=" Scenario Analysis" style="width: 100%;">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/scenarios.png" alt=" Scenarios Analysis" style="width: 100%;">
 </p>
 
 In the example, 10 scenarios were analyzed. Not all of them necessarily lead to benefits—only a few may contribute positively to energy consumption reduction.
