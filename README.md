@@ -318,7 +318,7 @@ An example of web app that uses pyBuildingCluster is available at:
 https://tools.eeb.eurac.edu/epc_clustering/piemonte/synthetic_epc
 
 <p align="center">
-  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/webapp.png" alt=" Geoclustering tool" style="width: 100%;">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/web_app.png" alt=" Geoclustering tool" style="width: 100%;">
 </p>
 
 In this case it is also possible to filter the data according to 12 types of tax filters defined, which take into account minimum conditions so that an EPC can be considered good or not. 
