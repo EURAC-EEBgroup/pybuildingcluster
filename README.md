@@ -78,7 +78,7 @@ For instance, the map illustrates that the dark blue areas correspond to the gre
 
 Moreover, specific retrofit scenarios can be identified. 
 <p align="center">
-  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/scenario.png" alt=" Scenario Analysis" style="width: 100%;">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/scenarios.png" alt=" Scenario Analysis" style="width: 100%;">
 </p>
 
 In the example, 10 scenarios were analyzed. Not all of them necessarily lead to benefits—only a few may contribute positively to energy consumption reduction.
