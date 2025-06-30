@@ -2,7 +2,7 @@
 Configuration Management Module
 
 This module provides configuration management functionality for the
-geoclustering sensitivity analysis system.
+PyBuildingCluster system.
 """
 
 import os
@@ -15,7 +15,7 @@ import warnings
 
 class ConfigManager:
     """
-    Configuration manager for geoclustering sensitivity analysis.
+    Configuration manager for PyBuildingCluster.
     
     This class handles loading, saving, and managing configuration files
     for the analysis pipeline.

@@ -1,5 +1,5 @@
 """
-Integration tests for the geoclustering sensitivity analysis system.
+Integration tests for the pybuildingcluster system.
 
 This module contains comprehensive integration tests that verify the interaction
 between all major components: data loading, clustering, regression modeling,

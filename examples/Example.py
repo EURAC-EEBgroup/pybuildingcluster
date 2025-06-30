@@ -2,7 +2,7 @@
 Example of pyBuildingCluster
 ============================
 
-This example demonstrates how to use pyBuildingCluster to perform clustering, regression modeling, sensitivity analysis and scenario-based evaluations.
+This example demonstrates how to use pyBuildingCluster to perform clustering, modeling, sensitivity analysis and scenario-based evaluations.
 """
 
 import pandas as pd

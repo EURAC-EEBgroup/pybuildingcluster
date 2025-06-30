@@ -1,4 +1,4 @@
-# Makefile for GeoClustering Sensitivity Analysis Library
+# Makefile for PyBuildingCluster Library
 # 
 # This Makefile provides convenient commands for development, testing, and deployment tasks.
 
@@ -27,7 +27,7 @@ RED = \033[31m
 NC = \033[0m # No Color
 
 help: ## Show this help message
-	@echo "$(BLUE)GeoClustering Sensitivity Analysis Library - Development Commands$(NC)"
+	@echo "$(BLUE)PyBuildingCluster - Development Commands$(NC)"
 	@echo ""
 	@echo "$(GREEN)Available commands:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(YELLOW)%-20s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)

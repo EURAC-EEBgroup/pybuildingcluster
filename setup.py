@@ -59,8 +59,8 @@ print(f"Found packages: {packages}")
 
 setup(
     name="pybuildingcluster",
-    version="1.0.7",
-    description="A Python library for clustering energy performance data and conducting sensitivity analysis on building clusters",
+    version="1.0.8",
+    description="A Python library to perform clustering, modeling, sensitivity analysis and scenario-based evaluations on buildings data",
     long_description=read_file("README.md") or "Building Energy Performance Clustering Library",
     long_description_content_type="text/markdown",
     author="Daniele Antonucci",

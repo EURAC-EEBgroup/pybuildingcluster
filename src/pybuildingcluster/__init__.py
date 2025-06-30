@@ -1,5 +1,5 @@
 """
-Geoclustering Sensitivity Analysis
+PyBuildingCluster - (Geo)clustering, sensitivity analysis and scenario-based evaluations
 
 A Python library for sensitivity analysis of building clusters, evaluating refurbishment scenarios.
 
@@ -7,7 +7,8 @@ This library provides tools for:
 - Clustering energy performance data using K-means and other algorithms
 - Building regression models with Random Forest, XGBoost, and LightGBM
 - Conducting sensitivity analysis using scenario analysis methods
-- Optimizing cluster parameters using Optuna
+- Optimizing cluster parameters
+- (Refurbishment) Scenario-based evaluations of buildings
 
 Authors: Daniele Antonucci, Olga Somova
 Organization: EURAC Research - Energy Efficient Buildings Group

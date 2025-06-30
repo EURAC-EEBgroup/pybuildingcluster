@@ -37,7 +37,7 @@ Example bug report template::
     **Environment:**
     - OS: Ubuntu 20.04
     - Python: 3.9.7
-    - pyBuildingCluster: 1.0.7
+    - pyBuildingCluster: 1.0.8
     - Installation: pip install pybuildingcluster
     
     **Dataset:**

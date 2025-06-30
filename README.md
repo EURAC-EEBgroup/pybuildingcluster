@@ -4,7 +4,7 @@
   <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/pybuildingcluster.png" alt=" pyBuildingCluster Logo" style="width: 100%;">
 </p>
 
-A Python library for sensitivity analysis of building clusters, evaluating refurbishment scenarios.
+A Python library to perform clustering, modeling, sensitivity analysis and refurbishment scenario-based evaluations of buildings.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)

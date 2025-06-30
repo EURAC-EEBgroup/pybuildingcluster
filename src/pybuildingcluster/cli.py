@@ -1,5 +1,5 @@
 """
-Command Line Interface for Geoclustering Sensitivity Analysis
+Command Line Interface for PyBuildingCluster - (Geo)clustering, sensitivity analysis and scenario-based evaluations
 
 This module provides a CLI for running clustering and sensitivity analysis
 from the command line.
