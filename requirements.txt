@@ -15,3 +15,5 @@ matplotlib
 xgboost
 lightgbm
 joblib
+ipywidgets
+jupyter

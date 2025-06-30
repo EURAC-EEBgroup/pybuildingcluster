@@ -23,11 +23,9 @@ pyBuildingCluster
     :target: https://github.com/psf/black
     :alt: Code style: black
 
-.. .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg
-..    :target: https://doi.org/10.5281/zenodo.XXXXXXX
-..    :alt: DOI
 
-A comprehensive Python library for analyzing building energy performance data through clustering, regression modeling, and sensitivity analysis. Designed for building energy researchers, engineers, and practitioners working with large-scale building datasets.
+**pyBuildingCluster** is a comprehensive Python library for analyzing building energy performance data through clustering, regression modeling, sensitivity analysis ans scenario-based analysis. 
+Designed for building energy researchers, engineers, and practitioners working with large-scale building datasets.
 
 🏢 **Building Energy Intelligence Made Simple**
 
@@ -83,54 +81,6 @@ Install pyBuildingCluster with pip:
 
     pip install pybuildingcluster
 
-For additional features:
-
-.. code-block:: bash
-
-    # Include machine learning models
-    pip install pybuildingcluster[ml]
-    
-    # Include interactive visualizations  
-    pip install pybuildingcluster[viz]
-    
-    # Install everything
-    pip install pybuildingcluster[all]
-
-Basic Usage
------------
-
-.. code-block:: python
-
-    from pybuildingcluster import GeoClusteringAnalyzer
-    
-    # Initialize analyzer
-    analyzer = GeoClusteringAnalyzer(
-        data_path="building_energy_data.csv",
-        feature_columns_clustering=['QHnd', 'degree_days'],
-        target_column='QHnd',
-        output_dir='./results'
-    )
-    
-    # Run complete analysis
-    results = analyzer.run_complete_analysis(
-        clustering_method="silhouette",
-        models_to_train=['random_forest', 'xgboost'],
-        sensitivity_vars=[
-            'average_opaque_surface_transmittance',
-            'average_glazed_surface_transmittance'
-        ]
-    )
-    
-    # Get summary
-    summary = analyzer.get_summary()
-    print(summary)
-
-This will:
-
-1. **Cluster buildings** by energy performance characteristics
-2. **Train ML models** for each cluster to predict energy demand
-3. **Analyze sensitivity** of energy demand to building parameters
-4. **Generate reports** with visualizations and recommendations
 
 ============
 Use Cases
@@ -177,71 +127,97 @@ Building Energy Certificate Analysis
 .. code-block:: python
 
     # Analyze European building energy certificates
+    def feature_columns_regression(building_data):
+        """Define feature columns for clustering and modeling."""
+        feature_remove_regression = ["QHnd","EPl", "EPt", "EPc", "EPv", "EPw", "EPh", "QHimp", "theoric_nominal_power", "energy_vectors_used"]
+        feature_columns_df = building_data.columns
+        feature_columns_regression = [item for item in feature_columns_df if item not in feature_remove_regression]
+        return feature_columns_regression
+    
+    feature_columns_regression = feature_columns_regression(building_data)
+    
     analyzer = GeoClusteringAnalyzer(
-        data_path="european_epc_data.csv",
+        data_path=building_data,                   
         feature_columns_clustering=['QHnd', 'degree_days'],
-        target_column='QHnd'
+        feature_columns_regression=feature_columns_regression,
+        output_dir=os.path.join(temp_dir, 'results'),
+        target_column='QHnd',
+        random_state=42,
+        user_features=['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
+    )
+
+    # Clean data
+    loaded_data = analyzer.load_and_clean_data(columns_to_remove=["EPl", "EPt", "EPc", "EPv", "EPw", "EPh", "QHimp", "theoric_nominal_power"])
+
+    # Build models
+    regression_builder = RegressionModelBuilder(random_state=42, problem_type="regression")
+    models = regression_builder.build_models(
+        data=building_data,
+        clusters=clusters,
+        target_column='QHnd',
+        feature_columns=feature_columns_regression,
+        models_to_train=['random_forest'],
+        hyperparameter_tuning="none",
+        models_dir=os.path.join(temp_dir, 'models'),
+        save_models=True,
+        user_features = ['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
     )
     
-    # Define renovation scenarios
-    scenarios = [
-        {
-            'name': 'Current State',
-            'parameters': {
-                'average_opaque_surface_transmittance': 0.75,
-                'average_glazed_surface_transmittance': 3.0
-            }
-        },
-        {
-            'name': 'Deep Renovation', 
-            'parameters': {
-                'average_opaque_surface_transmittance': 0.15,
-                'average_glazed_surface_transmittance': 1.0
-            }
-        }
+    sensitivity_analyzer = SensitivityAnalyzer(random_state=42)
+    sensitivity_results = sensitivity_analyzer.analyze(
+        model=models[1]['best_model'],
+        data=building_data,
+        scenarios=sensitivity_parameters,
+        feature_columns=feature_columns_regression,
+        target_column='QHnd',
+        sensitivity_vars=['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance'],
+        n_points=20,
+        normalize_=True,
+        plot_3d=False,
+        cluster_id=None,
+        save_results=True,
+        results_dir=os.path.join(temp_dir, 'sensitivity'),
+        create_html_report=True
+    )
+
+    optimizer = ParameterOptimizer(random_state=42)
+        
+    # Pick one cluster for optimization
+    cluster_id = list(models.keys())[0]
+    cluster_data = clusters['data_with_clusters'][clusters['data_with_clusters']['cluster'] == cluster_id]
+    
+    optimization_parameter_space = {
+        'average_opaque_surface_transmittance': {'type': 'float', 'low': 0.1, 'high': 1.0},
+        'average_glazed_surface_transmittance': {'type': 'float', 'low': 0.7, 'high': 3.0}
+    }
+    
+    optimization_results = optimizer.optimize_cluster_parameters(
+        cluster_data=cluster_data,
+        models=models,
+        parameter_space=optimization_parameter_space,
+        target_column='QHnd',
+        n_trials=5,
+        optimization_direction="minimize"
+    )
+    
+    # Create scenarios
+    list_dict_scenarios = analyzer.create_scenarios_from_cluster(cluster_id=0, sensitivity_vars=['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance'], n_scenarios=10)
+    # or   
+    list_dict_scenarios = [
+        {'name': 'Scenario 1', 'parameters': {'average_opaque_surface_transmittance': 0.5, 
+                                            'average_glazed_surface_transmittance': 1}},
+        {'name': 'Scenario 2', 'parameters': {'average_opaque_surface_transmittance': 0.2, 
+                                            'average_glazed_surface_transmittance': 0.7}}
     ]
-    
-    results = analyzer.run_complete_analysis(scenarios=scenarios)
 
-ESCO Portfolio Optimization
----------------------------
-
-.. code-block:: python
-
-    # Analyze building portfolio for energy service company
-    analyzer = GeoClusteringAnalyzer("esco_portfolio.csv")
-    
-    # Focus on buildings with highest savings potential
-    results = analyzer.run_complete_analysis(
-        clustering_method="silhouette",
-        models_to_train=['random_forest', 'lightgbm'],
-        sensitivity_vars=[
-            'average_opaque_surface_transmittance',
-            'average_glazed_surface_transmittance',
-            'system_efficiency'
-        ]
+    scenario_results = sensitivity_analyzer.compare_scenarios(
+        cluster_df=data_with_clusters,
+        scenarios=list_dict_scenarios,
+        target='QHnd',
+        feature_columns=models[1]['feature_columns'],
+        modello=models[1]['best_model']
     )
-    
-    # Results include ROI analysis and retrofit recommendations
 
-Command Line Interface
-----------------------
-
-.. code-block:: bash
-
-    # Quick analysis from command line
-    pybuildingcluster analyze \
-        --data building_data.csv \
-        --clustering-features QHnd degree_days \
-        --target QHnd \
-        --models random_forest xgboost \
-        --output-dir ./results
-    
-    # Advanced analysis with custom scenarios
-    pybuildingcluster scenarios \
-        --data energy_certificates.csv \
-        --scenarios retrofit_scenarios.json \
-        --output comprehensive_report.html
 
 ============
 Data Format
@@ -323,28 +299,6 @@ Development Installation
     cd pybuildingcluster
     pip install -e ".[dev,docs]"
 
-Optional Dependencies
---------------------
-
-.. code-block:: bash
-
-    # Machine learning models (XGBoost, LightGBM, Optuna)
-    pip install pybuildingcluster[ml]
-    
-    # Interactive visualizations (Plotly, Bokeh) 
-    pip install pybuildingcluster[viz]
-    
-    # Development tools (testing, linting, formatting)
-    pip install pybuildingcluster[dev]
-    
-    # Documentation building (Sphinx, themes)
-    pip install pybuildingcluster[docs]
-    
-    # Jupyter integration (notebooks, widgets)
-    pip install pybuildingcluster[interactive]
-    
-    # Everything included
-    pip install pybuildingcluster[all]
 
 ============
 Contributing
@@ -392,8 +346,7 @@ If you use pyBuildingCluster in your research, please cite:
 
 **Related Publications:**
 
-* [Add your publications here when available]
-* [Submit your work using pyBuildingCluster to be featured]
+* under construction
 
 ============
 Support
@@ -410,13 +363,13 @@ Support
     * Stack Overflow: Tag questions with ``pybuildingcluster``
 
 **🔬 Professional Support**
-    * Research collaborations: contact@eurac.edu
+    * Research collaborations: daniele.antonucci@eurac.edu
     * Commercial support and consulting available
     * Training workshops and seminars
     * Custom development for specific applications
 
 **📧 Contact**
-    * Email: contact@eurac.edu
+    * Email: daniele.antonucci@eurac.edu
     * Website: https://www.eurac.edu/en/institutes-centers/institute-for-renewable-energy
     * MODERATE Project: https://moderate-project.eu/
 
@@ -424,7 +377,7 @@ Support
 License
 ============
 
-pyBuildingCluster is released under the **BSD 3-Clause License**.
+pyBuildingCluster is released under the **MIT License**.
 
 .. code-block:: text
 

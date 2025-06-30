@@ -18,37 +18,37 @@ License: MIT
 # Import core modules with error handling
 _import_errors = []
 try:
-    from .clustering import ClusteringAnalyzer
+    from.core.clustering import ClusteringAnalyzer
 except ImportError as e:
     print(f"Warning: Could not import ClusteringAnalyzer: {e}")
     ClusteringAnalyzer = None
 
 try:
-    from .regression import RegressionModelBuilder
+    from .core.regression import RegressionModelBuilder
 except ImportError as e:
     print(f"Warning: Could not import RegressionModelBuilder: {e}")
     RegressionModelBuilder = None
 
 try:
-    from .coresensitivity import SensitivityAnalyzer
+    from .core.sensitivity import SensitivityAnalyzer
 except ImportError as e:
     print(f"Warning: Could not import SensitivityAnalyzer: {e}")
     SensitivityAnalyzer = None
 
 try:
-    from .optimization import ParameterOptimizer
+    from .core.optimization import ParameterOptimizer
 except ImportError as e:
     print(f"Warning: Could not import ParameterOptimizer: {e}")
     ParameterOptimizer = None
 
 try:
-    from .models import PredictiveModel
+    from .core.models import PredictiveModel
 except ImportError as e:
     print(f"Warning: Could not import PredictiveModel: {e}")
     PredictiveModel = None
 
 try:
-    from .loader import DataLoader
+    from .data.loader import DataLoader
 except ImportError as e:
     print(f"Warning: Could not import DataLoader: {e}")
     DataLoader = None
@@ -628,8 +628,6 @@ def get_available_components():
         components.append('SensitivityAnalyzer')
     if ParameterOptimizer is not None:
         components.append('ParameterOptimizer')
-    if DataLoader is not None:
-        components.append('DataLoader')
     if PredictiveModel is not None:
         components.append('PredictiveModel')
     
@@ -643,15 +641,3 @@ __all__ = ['GeoClusteringAnalyzer', 'check_dependencies', 'get_available_compone
 available_components = get_available_components()
 __all__.extend(available_components)
 
-if ClusteringAnalyzer is not None:
-    __all__.append("ClusteringAnalyzer")
-if RegressionModelBuilder is not None:
-    __all__.append("RegressionModelBuilder")
-if SensitivityAnalyzer is not None:
-    __all__.append("SensitivityAnalyzer")
-if ParameterOptimizer is not None:
-    __all__.append("ParameterOptimizer")
-if PredictiveModel is not None:
-    __all__.append("PredictiveModel")
-if DataLoader is not None:
-    __all__.append("DataLoader")

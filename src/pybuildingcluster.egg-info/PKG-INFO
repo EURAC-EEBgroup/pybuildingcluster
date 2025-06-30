@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: pybuildingcluster
-Version: 1.0.5
+Version: 1.0.7
 Summary: A Python library for clustering energy performance data and conducting sensitivity analysis on building clusters
 Home-page: https://github.com/EURAC-EEBgroup/pybuildingcluster
 Author: Daniele Antonucci

@@ -15,6 +15,12 @@ src/pybuildingcluster.egg-info/entry_points.txt
 src/pybuildingcluster.egg-info/not-zip-safe
 src/pybuildingcluster.egg-info/requires.txt
 src/pybuildingcluster.egg-info/top_level.txt
+src/pybuildingcluster/core/__init__.py
+src/pybuildingcluster/core/clustering.py
+src/pybuildingcluster/core/models.py
+src/pybuildingcluster/core/optimization.py
+src/pybuildingcluster/core/regression.py
+src/pybuildingcluster/core/sensitivity.py
 src/pybuildingcluster/data/__init__.py
 src/pybuildingcluster/data/loader.py
 src/pybuildingcluster/utils/__init__.py
