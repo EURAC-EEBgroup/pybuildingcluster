@@ -19,7 +19,6 @@ This library provides comprehensive tools for analyzing building energy performa
 - **Regression Modeling**: Support for Random Forest, XGBoost, and LightGBM models with automatic model selection
 - **Sensitivity Analysis**: Scenario-based analysis to understand parameter impacts on clusters
 - **Parameter Optimization**: Optuna-based optimization for finding optimal parameter combinations
-- **CLI Interface**: Command-line tools for easy integration into workflows
 - **Extensible Design**: Modular architecture for easy customization and extension
 
 ## Installation
