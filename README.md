@@ -62,7 +62,7 @@ Once the data is generated, it can be divided into different clusters based on s
 In the example provided, the clustering is done using the QHnd property (heating energy demand of the building) and  heating degree days.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/EURAC-EEBgroup/pybuildingcluster/refs/heads/main/docs/assets/elbow.png" alt=" Elbow Method" style="width: 100%;">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/elbow.png" alt=" Elbow Method" style="width: 100%;">
 </p>
 
 Each cluster is then analyzed through a sensitivity analysis of selected parameters.
@@ -70,7 +70,7 @@ Each cluster is then analyzed through a sensitivity analysis of selected paramet
 In this case, the average thermal transmittance of opaque components and the average thermal transmittance of transparent components are used.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/EURAC-EEBgroup/pybuildingcluster/refs/heads/main/docs/assets/sensitivity.png" alt=" Sensitivity Analysis" style="width: 100%;">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/sensitivity.png" alt=" Sensitivity Analysis" style="width: 100%;">
 </p>
 
 The analysis shows how varying these parameters can lead to significant reductions in energy consumption for the selected cluster.
@@ -78,7 +78,7 @@ For instance, the map illustrates that the dark blue areas correspond to the gre
 
 Moreover, specific retrofit scenarios can be identified. 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/EURAC-EEBgroup/pybuildingcluster/refs/heads/main/docs/assets/scenario.png" alt=" Scenario Analysis" style="width: 100%;">
+  <img src="https://github.com/EURAC-EEBgroup/pybuildingcluster/blob/main/src/pybuildingcluster/assets/scenario.png" alt=" Scenario Analysis" style="width: 100%;">
 </p>
 
 In the example, 10 scenarios were analyzed. Not all of them necessarily lead to benefits—only a few may contribute positively to energy consumption reduction.
