@@ -8,6 +8,9 @@ A Python library to perform clustering, modeling, sensitivity analysis and refur
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI version](https://badge.fury.io/py/pybuildingcluster.svg)](https://badge.fury.io/py/pybuildingcluster)
+[![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.15777018.svg)](https://zenodo.org/doi/10.5281/zenodo.15777018)
+
 
 ## Overview
 
@@ -328,6 +331,11 @@ In this case it is also possible to filter the data according to 12 types of tax
 
 N.B. Some parts of the app need to be updated and finalized. 
 
+# Cite
+
+Please cite us if you use the library
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15777018.svg)](https://zenodo.org/doi/10.5281/zenodo.15777018)
 
 # Acknowledgment
 
