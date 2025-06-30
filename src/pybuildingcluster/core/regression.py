@@ -8,7 +8,7 @@ prediction using Random Forest, XGBoost, and LightGBM with automatic model selec
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import Ridge, Lasso, ElasticNet,LassoCV
+from sklearn.linear_model import Ridge,  LassoCV
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.model_selection import (
     train_test_split, cross_val_score,
@@ -53,7 +53,7 @@ from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import warnings
 warnings.filterwarnings('ignore')
 
-class ModelBuilder:
+class RegressionModelBuilder:
     """
     Enhanced regression model builder with aggressive overfitting prevention.
     
@@ -381,7 +381,7 @@ class ModelBuilder:
         
         configs = {
             # Random Forest with conservative parameters
-            'random_forest_conservative': {
+            'random_forest': {
                 'model': RandomForestRegressor(
                     n_estimators=100,  # Moderate number of trees
                     max_depth=8,       # Limited depth
@@ -400,36 +400,12 @@ class ModelBuilder:
                 }
             },
             
-            # Ridge Regression (L2 regularization)
-            'ridge_strong': {
-                'model': Ridge(random_state=self.random_state),
-                'params': {
-                    'alpha': [1.0, 10.0, 50.0, 100.0, 500.0]  # Strong regularization
-                }
-            },
-            
-            # Lasso Regression (L1 regularization for feature selection)
-            'lasso_strong': {
-                'model': Lasso(random_state=self.random_state, max_iter=2000),
-                'params': {
-                    'alpha': [0.1, 0.5, 1.0, 5.0, 10.0]  # Strong regularization
-                }
-            },
-            
-            # Elastic Net (combined L1 and L2)
-            'elastic_net_strong': {
-                'model': ElasticNet(random_state=self.random_state, max_iter=2000),
-                'params': {
-                    'alpha': [0.1, 0.5, 1.0, 5.0, 10.0],
-                    'l1_ratio': [0.3, 0.5, 0.7, 0.9]
-                }
-            }
         }
         
         # Add XGBoost if available
         try:
             import xgboost as xgb
-            configs['xgboost_conservative'] = {
+            configs['xgboost'] = {
                 'model': xgb.XGBRegressor(
                     n_estimators=100,
                     max_depth=4,      # Shallow trees
@@ -456,7 +432,7 @@ class ModelBuilder:
         # Add LightGBM if available
         try:
             import lightgbm as lgb
-            configs['lightgbm_conservative'] = {
+            configs['lightgbm'] = {
                 'model': lgb.LGBMRegressor(
                     n_estimators=100,
                     max_depth=4,
@@ -775,7 +751,7 @@ class ModelBuilder:
                 X_train, X_test, y_train, y_test, selected_features = self.prepare_data_with_feature_selection(
                     cluster_data, target_column, feature_columns,
                     test_size=0.3,  # Larger test set
-                    scale_features=True,
+                    scale_features=False,
                     max_features_ratio=0.25,  # Conservative feature ratio
                     min_features=3,
                     max_features_absolute=12,  # Lower absolute limit

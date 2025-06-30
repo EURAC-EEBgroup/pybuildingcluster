@@ -89,7 +89,7 @@ class ClusteringAnalyzer:
         data : np.ndarray
             Scaled data for clustering
         method : str, optional
-            Method to use ('elbow', 'silhouette', 'calinski_harabasz'), by default "elbow"
+            Method to use ('elbow', 'silhouette'), by default "elbow"
         k_range : Tuple[int, int], optional
             Range of k values to test, by default (2, 15)
         plot : bool, optional
@@ -107,10 +107,8 @@ class ClusteringAnalyzer:
             return self._elbow_method(data, k_values, plot)
         elif method == "silhouette":
             return self._silhouette_method(data, k_values, plot)
-        elif method == "calinski_harabasz":
-            return self._calinski_harabasz_method(data, k_values, plot)
         else:
-            raise ValueError(f"Unknown method: {method}. Use 'elbow', 'silhouette', or 'calinski_harabasz'")
+            raise ValueError(f"Unknown method: {method}. Use 'elbow', 'silhouette'")
     
     def _elbow_method(self, data: np.ndarray, k_values: range, plot: bool = True) -> int:
         """Determine optimal clusters using elbow method."""

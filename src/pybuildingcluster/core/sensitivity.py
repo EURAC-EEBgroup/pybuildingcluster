@@ -9,17 +9,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Any
 import warnings
 import os
-from pathlib import Path
 import joblib
-from itertools import product
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from datetime import datetime
-from sklearn.compose import ColumnTransformer
+from sklearn.metrics import mean_squared_error
+from sklearn.compose import ColumnTransformer   
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-
+from scipy.stats import qmc
+import itertools
+from tqdm.notebook import tqdm
+import scipy.stats as st
+from mpl_toolkits.mplot3d import Axes3D
 
 class SensitivityAnalyzer:
     """
@@ -74,7 +75,7 @@ class SensitivityAnalyzer:
         elif method == "latin_hypercube":
             # Latin Hypercube Sampling
             try:
-                from scipy.stats import qmc
+                
                 sampler = qmc.LatinHypercube(d=len(parameters), seed=self.random_state)
                 samples = sampler.random(n_samples)
                 
@@ -152,8 +153,7 @@ class SensitivityAnalyzer:
         Returns:
             DataFrame with the sensitivity analysis results
         """
-        import itertools
-        from tqdm.notebook import tqdm
+
         
         # Filter data by cluster if specified
         if cluster_id is not None:
@@ -327,7 +327,6 @@ class SensitivityAnalyzer:
             
             # If requested, generate a 3D plot
             if plot_3d:
-                from mpl_toolkits.mplot3d import Axes3D
                 
                 fig = plt.figure(figsize=(12, 10))
                 ax = fig.add_subplot(111, projection='3d')
@@ -950,7 +949,7 @@ class SensitivityAnalyzer:
         Returns:
             dict: Predictions of the model with confidence intervals
         """
-        import scipy.stats as st
+       
         
         # Enhanced model handling - support multiple model formats
         if hasattr(best_model, 'predict'):
@@ -963,24 +962,24 @@ class SensitivityAnalyzer:
             raise ValueError("Invalid model format. Model must have 'predict' method or be a dict with 'model'/'best_model' key")
         
         # Prepare the input data
-        if isinstance(input_data, pd.DataFrame):
-            # Verify that all necessary columns are present
-            if hasattr(self, 'X_train') and isinstance(self.X_train, pd.DataFrame):
-                missing_cols = set(self.X_train.columns) - set(input_data.columns)
-                if missing_cols:
-                    raise ValueError(f"I dati di input mancano delle seguenti colonne: {missing_cols}")
+        # if isinstance(input_data, pd.DataFrame):
+        #     # Verify that all necessary columns are present
+        #     if hasattr(self, 'X_train') and isinstance(self.X_train, pd.DataFrame):
+        #         missing_cols = set(self.X_train.columns) - set(input_data.columns)
+        #         if missing_cols:
+        #             raise ValueError(f"I dati di input mancano delle seguenti colonne: {missing_cols}")
             
-            # Applica lo stesso preprocessing usato per i dati di training se richiesto
-            if apply_preprocessing and hasattr(self, 'preprocessor') and self.preprocessor is not None:
-                print("Applicazione preprocessing ai dati...")
-                dati_processati = self.preprocessor.transform(input_data)
-            else:
-                # Se non è richiesto preprocessing o non abbiamo un preprocessor, 
-                # assumiamo che i dati siano già formattati correttamente
-                dati_processati = input_data.values if hasattr(input_data, 'values') else input_data
-        else:
+        #     # Applica lo stesso preprocessing usato per i dati di training se richiesto
+        #     if apply_preprocessing:
+        #         print("Applicazione preprocessing ai dati...")
+        #         dati_processati = self.preprocessor.transform(input_data)
+        #     else:
+        #         # Se non è richiesto preprocessing o non abbiamo un preprocessor, 
+        #         # assumiamo che i dati siano già formattati correttamente
+        #         dati_processati = input_data.values if hasattr(input_data, 'values') else input_data
+        # else:
             # Assume that the data is already preprocessed correctly
-            dati_processati = input_data
+        dati_processati = input_data
         
         # Make predictions with enhanced error handling
         try:

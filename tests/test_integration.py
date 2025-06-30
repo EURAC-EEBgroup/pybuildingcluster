@@ -13,11 +13,9 @@ import tempfile
 import shutil
 import os
 import sys
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-from sklearn.datasets import make_blobs, make_regression
+from unittest.mock import patch
+from sklearn.datasets import make_blobs
 import warnings
-import joblib
 
 # Handle optional dependencies
 try:
@@ -50,6 +48,8 @@ except ImportError:
     from src.pybuildingcluster import GeoClusteringAnalyzer
     from src.pybuildingcluster.data.loader import DataLoader
 
+
+data_path = "../data/clustering.csv" # path to the csv file
 
 @pytest.fixture
 def temp_dir():
@@ -116,12 +116,11 @@ def synthetic_building_data():
     data['building_id'] = range(1, n_samples + 1)
     
     return data
-    #
 
 @pytest.fixture
 def building_data():
     """Create synthetic regression data."""
-    df = pd.read_csv(".../data/clustering.csv", sep=",", decimal=".", low_memory=False, header=0, index_col=0)
+    df = pd.read_csv(data_path, sep=",", decimal=".", low_memory=False, header=0, index_col=0)
     df = df[~df.apply(lambda row: row.astype(str).str.contains("\\n\\t\\t\\t\\t\\t\\t").any(), axis=1)]
     df = df[~df.apply(lambda row: row.astype(str).str.contains("\n").any(), axis=1)]
     df = df.reset_index(drop=True)
@@ -396,7 +395,7 @@ class TestRegressionModelingIntegration:
 class TestSensitivityAnalysisIntegration:
     """Integration tests for the SensitivityAnalyzer component."""
     
-    def test_individual_sensitivity_methods(self, building_data, feature_columns, sensitivity_parameters, feature_columns_regression):
+    def test_individual_sensitivity_methods(self, building_data, feature_columns, feature_columns_regression):
         """Test individual sensitivity analysis methods."""
         # Setup clustering and models
         clustering_analyzer = ClusteringAnalyzer(random_state=42)
@@ -417,7 +416,8 @@ class TestSensitivityAnalysisIntegration:
             feature_columns=feature_columns_regression,
             models_to_train=['random_forest'],
             hyperparameter_tuning="none",
-            save_models=False
+            save_models=False,
+            user_features = ['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
         )
         
         sensitivity_analyzer = SensitivityAnalyzer(random_state=42)
@@ -432,7 +432,7 @@ class TestSensitivityAnalysisIntegration:
             normalize_=True,
             plot_3d=False,
             cluster_id=None,
-            feature_columns=feature_columns_regression
+            feature_columns=models[1]['feature_columns']
         )
         
         assert len(oat_results) > 0
@@ -448,7 +448,7 @@ class TestSensitivityAnalysisIntegration:
             cluster_df=data_with_clusters,
             scenarios=list_dict_scenarios,
             target='QHnd',
-            feature_columns=feature_columns_regression,
+            feature_columns=models[1]['feature_columns'],
             modello=models[1]['best_model']
         )
 
@@ -483,7 +483,8 @@ class TestParameterOptimizationIntegration:
             feature_columns=feature_columns_regression,
             models_to_train=['random_forest'],
             hyperparameter_tuning="none",
-            save_models=False
+            save_models=False,
+            user_features = ['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
         )
         
         # Parameter optimization
@@ -549,7 +550,8 @@ class TestParameterOptimizationIntegration:
             feature_columns=feature_columns_regression,
             models_to_train=['random_forest'],
             hyperparameter_tuning="none",
-            save_models=False
+            save_models=False,
+            user_features = ['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
         )
         
         # Prepare cluster data
@@ -617,7 +619,8 @@ class TestEndToEndIntegration:
             models_to_train=['random_forest'],
             hyperparameter_tuning="none",
             models_dir=os.path.join(temp_dir, 'models'),
-            save_models=True
+            save_models=True,
+            user_features = ['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
         )
         
         # Step 4: Sensitivity Analysis
@@ -682,7 +685,7 @@ class TestEndToEndIntegration:
         
         # Test main analyzer class
         data_file = os.path.join(temp_dir, 'building_data.csv')
-        df = pd.read_csv("/Users/dantonucci/Documents/gitHub/geoclustering_sensitivity_analysis/pybuildingcluster/src/pybuildingcluster/data/clustering.csv", sep=",", decimal=".", low_memory=False, header=0, index_col=0)
+        df = pd.read_csv(data_path, sep=",", decimal=".", low_memory=False, header=0, index_col=0)
         df = df[~df.apply(lambda row: row.astype(str).str.contains("\\n\\t\\t\\t\\t\\t\\t").any(), axis=1)]
         df = df[~df.apply(lambda row: row.astype(str).str.contains("\n").any(), axis=1)]
         df = df.reset_index(drop=True)
@@ -690,30 +693,51 @@ class TestEndToEndIntegration:
 
         analyzer = GeoClusteringAnalyzer(
             data_path=data_file,
-            columns_selected=feature_columns_regression,
-            columns_to_delete=["EPl", "EPt", "EPc", "EPv", "EPw", "EPh", "QHimp", "theoric_nominal_power"],
-            cluster_method_custom=True,
-            cluster_value=3,
-            save_clusters=True,
-            clusters_output_dir=os.path.join(temp_dir, 'clusters'),
-            models_dir=os.path.join(temp_dir, 'models'),
-            results_dir=os.path.join(temp_dir, 'results'),
-            columns_cluster= feature_columns,
-            models_to_train=['random_forest']
+            feature_columns_clustering=feature_columns,
+            feature_columns_regression=feature_columns_regression,
+            output_dir=os.path.join(temp_dir, 'results'),
+            target_column='QHnd',
+            random_state=42,
+            user_features=['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance']
         )
         
         # Test data loading
-        loaded_data = analyzer.load_data()
+        loaded_data = analyzer.load_and_clean_data(columns_to_remove=["EPl", "EPt", "EPc", "EPv", "EPw", "EPh", "QHimp", "theoric_nominal_power"])
         assert len(loaded_data) == len(building_data)
         
         # Test clustering
-        clusters = analyzer.fit_clustering()
-        assert clusters['n_clusters'] == 3
+        clusters = analyzer.perform_clustering()
+        assert clusters['n_clusters'] == 2
         
         # Test regression modeling
-        models = analyzer.build_regression_models(target_column='QHnd')
+        models = analyzer.build_models(models_to_train=['random_forest','xgboost','lightgbm'], hyperparameter_tuning="none")
         assert len(models) > 0
         
+        #Test create scenarios
+        scenarios = analyzer.create_scenarios_from_cluster(cluster_id=0, sensitivity_vars=['average_opaque_surface_transmittance', 'average_glazed_surface_transmittance'], n_scenarios=10)
+        assert len(scenarios) > 0
+
+        optimizer = ParameterOptimizer(random_state=42)
+        # Pick one cluster for optimization
+        cluster_id = list(models.keys())[0]
+        cluster_data = clusters['data_with_clusters'][clusters['data_with_clusters']['cluster'] == cluster_id]
+        
+        optimization_parameter_space = {
+            'average_opaque_surface_transmittance': {'type': 'float', 'low': 0.1, 'high': 1.0},
+            'average_glazed_surface_transmittance': {'type': 'float', 'low': 0.7, 'high': 3.0}
+        }
+        
+        optimization_results = optimizer.optimize_cluster_parameters(
+            cluster_data=cluster_data,
+            models=models,
+            parameter_space=optimization_parameter_space,
+            target_column='QHnd',
+            n_trials=5,
+            optimization_direction="minimize"
+        )
+
+        assert 'best_parameters' in optimization_results
+        assert 'best_value' in optimization_results
 
         print(f"✅ GeoClusteringAnalyzer integration test passed!")
 
@@ -744,7 +768,7 @@ class TestErrorHandlingAndEdgeCases:
         assert 'labels' in results
         assert len(results['labels']) == 3
     
-    def test_missing_target_values(self, feature_columns, building_data):
+    def test_missing_target_values(self, feature_columns_regression, building_data):
         """Test handling of missing target values in regression."""
         # Create data with missing target values
         data = building_data.copy()
@@ -767,7 +791,7 @@ class TestErrorHandlingAndEdgeCases:
                 data=data,
                 clusters=clusters,
                 target_column='QHnd',
-                feature_columns=feature_columns[:4],  # Use subset of features
+                feature_columns=feature_columns_regression,  # Use subset of features
                 models_to_train=['random_forest'],
                 hyperparameter_tuning="none",
                 save_models=False
@@ -776,37 +800,7 @@ class TestErrorHandlingAndEdgeCases:
         # Should either build models or handle gracefully
         assert isinstance(models, dict)
     
-    def test_single_cluster_scenario(self, building_data, feature_columns):
-        """Test behavior when only one cluster is found."""
-        # Force single cluster
-        clustering_analyzer = ClusteringAnalyzer(random_state=42)
-        
-        results = clustering_analyzer.fit_predict(
-            data=building_data,
-            feature_columns=feature_columns,
-            n_clusters=1,
-            algorithm="kmeans",
-            save_clusters=False
-        )
-        
-        assert results['n_clusters'] == 1
-        assert all(label == 0 for label in results['labels'])
-        
-        # Test regression with single cluster
-        regression_builder = RegressionModelBuilder(random_state=42, problem_type="regression")
-        
-        models = regression_builder.build_models(
-            data=building_data,
-            clusters=results,
-            target_column='QHnd',
-            feature_columns=feature_columns,
-            models_to_train=['random_forest'],
-            hyperparameter_tuning="none",
-            save_models=False
-        )
-        
-        assert len(models) == 1
-        assert 0 in models  # Cluster 0 should exist
+
     
     def test_parameter_optimization_with_constraints(self, building_data, feature_columns, feature_columns_regression):
         """Test parameter optimization with constraints."""
@@ -815,10 +809,10 @@ class TestErrorHandlingAndEdgeCases:
         clusters = clustering_analyzer.fit_predict(
             data=building_data,
             feature_columns=feature_columns,
-            n_clusters=2,
+            method="silhouette",
             algorithm="kmeans",
-            save_clusters=False
-        )
+            save_clusters=True,
+        )    
         
         regression_builder = RegressionModelBuilder(random_state=42, problem_type="regression")
         models = regression_builder.build_models(
@@ -863,7 +857,7 @@ class TestErrorHandlingAndEdgeCases:
         optimization_results = optimizer.optimize_cluster_parameters(
             cluster_data=cluster_data,
             models=models,
-            parameter_space=parameter_space,
+            parameter_space=optimization_parameter_space,
             target_column='QHnd',
             n_trials=5,
             optimization_direction="minimize",

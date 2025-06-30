@@ -5,8 +5,6 @@ This module contains comprehensive tests for the ClusteringAnalyzer class
 including unit tests, integration tests, and edge case handling.
 """
 
-
-
 import pytest
 import numpy as np
 import pandas as pd
@@ -14,13 +12,12 @@ import tempfile
 import shutil
 import os
 import sys
-from unittest.mock import patch, MagicMock
-from sklearn.datasets import make_blobs
+from unittest.mock import patch
 import warnings
 
 
 feature_columns = ['QHnd', 'degree_days']
-
+data_path = "../data/data.csv"  # path to the data.csv file
 # Handle optional dependencies
 try:
     import xgboost as xgb
@@ -53,25 +50,6 @@ def temp_dir():
 
 class TestClusteringAnalyzer:
     """Test suite for the ClusteringAnalyzer class."""
-    
-    # @pytest.fixture
-    # def sample_data(self):
-    #     """Create sample data for testing."""
-    #     # Generate synthetic clustered data
-    #     X, y = make_blobs(
-    #         n_samples=100, 
-    #         centers=3, 
-    #         n_features=4, 
-    #         cluster_std=1.0, 
-    #         random_state=42
-    #     )
-        
-    #     # Create DataFrame
-    #     df = pd.DataFrame(X, columns=['feature_1', 'feature_2', 'feature_3', 'feature_4'])
-    #     df['target'] = y
-    #     df['categorical'] = np.random.choice(['A', 'B', 'C'], size=100)
-        
-    #     return df
 
     @pytest.fixture
     def sample_data(self):
@@ -79,7 +57,7 @@ class TestClusteringAnalyzer:
         Uplod csv dataset from EPC
         '''
         print("Loading dataset...")
-        df = pd.read_csv("/Users/dantonucci/Documents/gitHub/pybuildingcluster_analysis/pybuildingcluster_analysis/src/pybuildingcluster/data/clustering.csv", sep=",", decimal=".", low_memory=False, header=0, index_col=0)
+        df = pd.read_csv(data_path, sep=",", decimal=".", low_memory=False, header=0, index_col=0)
         df = df[~df.apply(lambda row: row.astype(str).str.contains("\\n\\t\\t\\t\\t\\t\\t").any(), axis=1)]
         df = df[~df.apply(lambda row: row.astype(str).str.contains("\n").any(), axis=1)]
         df = df.reset_index(drop=True)
@@ -537,7 +515,7 @@ class TestClusteringIntegration:
         Uplod csv dataset from EPC
         '''
         print("Loading dataset...")
-        df = pd.read_csv("/Users/dantonucci/Documents/gitHub/pybuildingcluster_analysis/pybuildingcluster_analysis/src/pybuildingcluster/data/clustering.csv", sep=",", decimal=".", low_memory=False, header=0, index_col=0)
+        df = pd.read_csv(data_path, sep=",", decimal=".", low_memory=False, header=0, index_col=0)
         
         return df
 

@@ -22,3 +22,5 @@ src/pybuildingcluster/utils/config.py
 tests/__init__.py
 tests/test_clustering.py
 tests/test_integration.py
+tests/__pycache__/__init__.cpython-312.pyc
+tests/__pycache__/test_integration.cpython-312-pytest-8.4.1.pyc

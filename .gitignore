@@ -3,3 +3,5 @@ __pycache__
 .env
 dist
 htmlcov
+readme_dev.md
+pybuildingcluster.egg-info

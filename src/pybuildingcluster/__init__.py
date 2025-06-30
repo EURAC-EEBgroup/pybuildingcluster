@@ -14,56 +14,49 @@ Organization: EURAC Research - Energy Efficient Buildings Group
 License: MIT
 """
 
+
+# Import core modules with error handling
+_import_errors = []
+try:
+    from .clustering import ClusteringAnalyzer
+except ImportError as e:
+    print(f"Warning: Could not import ClusteringAnalyzer: {e}")
+    ClusteringAnalyzer = None
+
+try:
+    from .regression import RegressionModelBuilder
+except ImportError as e:
+    print(f"Warning: Could not import RegressionModelBuilder: {e}")
+    RegressionModelBuilder = None
+
+try:
+    from .coresensitivity import SensitivityAnalyzer
+except ImportError as e:
+    print(f"Warning: Could not import SensitivityAnalyzer: {e}")
+    SensitivityAnalyzer = None
+
+try:
+    from .optimization import ParameterOptimizer
+except ImportError as e:
+    print(f"Warning: Could not import ParameterOptimizer: {e}")
+    ParameterOptimizer = None
+
+try:
+    from .models import PredictiveModel
+except ImportError as e:
+    print(f"Warning: Could not import PredictiveModel: {e}")
+    PredictiveModel = None
+
+try:
+    from .loader import DataLoader
+except ImportError as e:
+    print(f"Warning: Could not import DataLoader: {e}")
+    DataLoader = None
+
 __version__ = "0.1.0"
 __author__ = "Daniele Antonucci"
 __email__ = "daniele.antonucci@eurac.edu"
 __license__ = "MIT"
-
-# Import core modules with error handling
-_import_errors = []
-
-try:
-    from .core.clustering import ClusteringAnalyzer
-except ImportError as e:
-    _import_errors.append(f"ClusteringAnalyzer: {e}")
-    ClusteringAnalyzer = None
-
-try:
-    from .core.regression import RegressionModelBuilder
-except ImportError as e:
-    _import_errors.append(f"RegressionModelBuilder: {e}")
-    RegressionModelBuilder = None
-
-try:
-    from .core.sensitivity import SensitivityAnalyzer
-except ImportError as e:
-    _import_errors.append(f"SensitivityAnalyzer: {e}")
-    SensitivityAnalyzer = None
-
-try:
-    from .core.optimization import ParameterOptimizer
-except ImportError as e:
-    _import_errors.append(f"ParameterOptimizer: {e}")
-    ParameterOptimizer = None
-
-try:
-    from .core.models import PredictiveModel
-except ImportError as e:
-    _import_errors.append(f"PredictiveModel: {e}")
-    PredictiveModel = None
-
-try:
-    from .data.loader import DataLoader
-except ImportError as e:
-    _import_errors.append(f"DataLoader: {e}")
-    DataLoader = None
-
-try:
-    from .utils.config import ConfigManager
-except ImportError as e:
-    _import_errors.append(f"ConfigManager: {e}")
-    ConfigManager = None
-
 
 # Package metadata
 __package_info__ = {
@@ -124,14 +117,15 @@ class GeoClusteringAnalyzer:
         feature_columns_regression: List[str] = None,
         target_column: str = 'QHnd',
         random_state: int = 42,
-        output_dir: str = './results'
+        output_dir: str = './results',
+        user_features: List[str] = None,
     ):
         # Importa componenti pybuildingcluster
-        try:
-            import pybuildingcluster as pbui
-            self.pbui = pbui
-        except ImportError:
-            raise ImportError("pybuildingcluster non trovato. Installare con: pip install pybuildingcluster")
+        # try:
+        #     import pybuildingcluster as pbui
+        #     self.pbui = pbui
+        # except ImportError:
+        #     raise ImportError("pybuildingcluster non trovato. Installare con: pip install pybuildingcluster")
         
         # Configurazione
         self.config = {
@@ -140,16 +134,17 @@ class GeoClusteringAnalyzer:
             'feature_columns_regression': feature_columns_regression,
             'target_column': target_column,
             'random_state': random_state,
-            'output_dir': Path(output_dir)
+            'output_dir': Path(output_dir),
+            'user_features': user_features
         }
         
         # Crea directory output
         self.config['output_dir'].mkdir(exist_ok=True)
         
         # Inizializza componenti
-        self.clustering_analyzer = pbui.ClusteringAnalyzer(random_state=random_state)
-        self.regression_builder = pbui.RegressionModelBuilder(random_state=random_state, problem_type="regression")
-        self.sensitivity_analyzer = pbui.SensitivityAnalyzer(random_state=random_state)
+        self.clustering_analyzer = ClusteringAnalyzer(random_state=random_state)
+        self.regression_builder = RegressionModelBuilder(random_state=random_state, problem_type="regression")
+        self.sensitivity_analyzer = SensitivityAnalyzer(random_state=random_state)
         
         # Storage risultati
         self.data = None
@@ -206,10 +201,7 @@ class GeoClusteringAnalyzer:
         
         # Auto-genera feature_columns_regression se non specificato
         if self.config['feature_columns_regression'] is None:
-            exclude_cols = [
-                self.config['target_column'], "QHnd", "EPl", "EPt", "EPc", "EPv", 
-                "EPw", "EPh", "QHimp", "theoric_nominal_power", "energy_vectors_used"
-            ]
+            exclude_cols = columns_to_remove + [self.config['target_column']]
             self.config['feature_columns_regression'] = [
                 col for col in self.data.columns if col not in exclude_cols
             ]
@@ -312,7 +304,8 @@ class GeoClusteringAnalyzer:
             feature_columns=self.config['feature_columns_regression'],
             models_to_train=models_to_train,
             hyperparameter_tuning=hyperparameter_tuning,
-            save_models=True
+            save_models=True,
+            user_features=self.config['user_features']
         )
         
         self.results['models'] = {
@@ -601,7 +594,6 @@ def check_dependencies():
         'SensitivityAnalyzer': SensitivityAnalyzer is not None,
         'ParameterOptimizer': ParameterOptimizer is not None,
         'DataLoader': DataLoader is not None,
-        'ConfigManager': ConfigManager is not None,
         'PredictiveModel': PredictiveModel is not None
     }
     
@@ -638,8 +630,6 @@ def get_available_components():
         components.append('ParameterOptimizer')
     if DataLoader is not None:
         components.append('DataLoader')
-    if ConfigManager is not None:
-        components.append('ConfigManager')
     if PredictiveModel is not None:
         components.append('PredictiveModel')
     
@@ -652,3 +642,16 @@ __all__ = ['GeoClusteringAnalyzer', 'check_dependencies', 'get_available_compone
 # Add available components to __all__
 available_components = get_available_components()
 __all__.extend(available_components)
+
+if ClusteringAnalyzer is not None:
+    __all__.append("ClusteringAnalyzer")
+if RegressionModelBuilder is not None:
+    __all__.append("RegressionModelBuilder")
+if SensitivityAnalyzer is not None:
+    __all__.append("SensitivityAnalyzer")
+if ParameterOptimizer is not None:
+    __all__.append("ParameterOptimizer")
+if PredictiveModel is not None:
+    __all__.append("PredictiveModel")
+if DataLoader is not None:
+    __all__.append("DataLoader")
