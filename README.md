@@ -53,7 +53,7 @@ pip install -e ".[dev]"
 
 ### Example
 
-Here an `Example <https://github.com/EURAC-EEBgroup/pyBuildingCluster/tree/master/examples>` of pybuildingcluster application, using Energy Performance Certifcate dataset
+Here an  [Example](https://github.com/EURAC-EEBgroup/pyBuildingCluster/tree/master/examples) of pybuildingcluster application, using Energy Performance Certifcate dataset
 
 The example use Synthetic dataset of Energy Performance Certificates of public buildings in Piedmont Region, Italy.
 
@@ -66,7 +66,7 @@ All within the synthetic folder it is possible to view the report relative to th
 ### How to use the synthetic dataset and the library.
 The synthesized dataset, in addition to preserving the same statistical characteristics as the original data, represents a very useful resource for evaluating potential energy efficiency improvements across a building stock where only some buildings' performance data is known. In fact, by generating synthetic data, more robust assessments can be made, since the analysis can be based on a larger number of buildings that closely resemble those present in the actual territory.
 
-Here `Report <https://github.com/EURAC-EEBgroup/pybuildingcluster/tree/master/synthetization/EPC_tabular.html>` of the synthetic dataset of EPC.
+Here [Report](https://github.com/EURAC-EEBgroup/pybuildingcluster/tree/master/synthetization/EPC_tabular.html) of the synthetic dataset of EPC.
 
 Once the data is generated, it can be divided into different clusters based on specific properties.
 In the example provided, the clustering is done using the QHnd property (heating energy demand of the building) and  heating degree days.
